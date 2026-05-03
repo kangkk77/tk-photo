@@ -1,10 +1,13 @@
 # T&K Photo Progress
 
-Last updated: 2026-05-01
+Last updated: 2026-05-03
 
 ## Current Status
 
-The project is now in the static showcase phase for a GitHub Pages photography site.
+The project is now live on GitHub Pages as a static online photography exhibition.
+
+Live site:
+- `https://kangkk77.github.io/tk-photo/`
 
 Build status:
 - `npm run build` passes
@@ -50,8 +53,7 @@ Completed:
 - Static data files:
   - `src/data/site.ts`
   - `src/data/albums.ts`
-- 2 sample albums
-- 3 sample photos per album
+- Exhibition-style album data structure
 - Image paths stored only as relative path fragments
 - Matching image directories under `public/images`
 
@@ -103,24 +105,6 @@ Completed:
 Verification:
 - `npm run build` passed
 
-### Phase 5.5: Real Photo Integration
-
-Completed:
-- Connected 3 real test photos to `golden-coast`
-- Saved real images under `public/images/golden-coast/`
-- Reused one real image as `cover.jpg`
-- Updated `src/data/albums.ts` so homepage, `/albums`, and `/albums/golden-coast` all render real photos
-- Kept data paths as relative fragments only
-
-Saved image files:
-- `public/images/golden-coast/cover.jpg`
-- `public/images/golden-coast/coast-shadow.jpg`
-- `public/images/golden-coast/sea-light.jpg`
-- `public/images/golden-coast/sunset-rock.jpg`
-
-Verification:
-- `npm run build` passed
-
 ### Phase 6: Photo Detail Page
 
 Completed:
@@ -142,14 +126,13 @@ Completed:
 Verification:
 - `npm run build` passed
 
-### Phase 6.5: Real EXIF Integration
+### Phase 6.5: Real Photo And EXIF Integration
 
 Completed:
-- Read EXIF metadata from the real `golden-coast` image files
-- Generated `EXIF_REPORT.md` as a local verification report
-- Replaced example EXIF values in `src/data/albums.ts` with real camera data
+- Connected real photos into the site collection
+- Generated `EXIF_REPORT.md`
+- Replaced example EXIF values in `src/data/albums.ts` with real camera data where available
 - Kept image path fragments unchanged
-- Preserved existing page structure and styles
 
 Verification:
 - `npm run build` passed
@@ -189,13 +172,26 @@ Completed:
 Verification:
 - `npm run build` passed
 
+### Release Acceptance: GitHub Pages Live
+
+Completed:
+- Verified the project is reachable on GitHub Pages
+- Confirmed the production site uses the configured `/tk-photo/` base path
+- Confirmed deployment workflow is in place and the live URL resolves
+- Updated repository documentation for local development, build, deployment, and content updates
+- Reviewed repository hygiene for temporary scaffold files and unused image assets
+
+Verification:
+- Live site available at `https://kangkk77.github.io/tk-photo/`
+- `npm run build` passed
+
 ## Current Rules
 
 These rules must continue to be followed:
 
 1. Use `HashRouter`
 2. Never store image paths as `/images/...` in data files
-3. Store only relative image path fragments such as `golden-coast/cover.jpg`
+3. Store only relative image path fragments such as `stone-and-eaves/pagoda-rise.jpg`
 4. Always resolve image URLs in components with `getImagePath()`
 5. Dev `base` is `/`
 6. Prod `base` is `/tk-photo/`
@@ -213,29 +209,34 @@ Implemented:
 - Home page visual system
 - Album index page
 - Album detail page with exhibition wall
-- Real test photo integration
 - Photo detail page with EXIF panel
+- Real photo integration
 - Real EXIF metadata integration
 - Theme toggle and persisted theme preference
 - Route-level not-found page
 - Reduced-motion support
 - About page exhibition content
 - GitHub Pages deployment workflow
+- Live GitHub Pages deployment
 
 Not implemented yet:
-- GitHub repository-side Pages setting activation
+- Login
+- Upload
+- Database
+- Supabase
+- Comments, likes, favorites
+- Download actions
 
 ## Next Phase
 
 ### Next Candidate Phase
 
 Goal:
-- Activate GitHub Pages in repository settings and verify the first production deployment
+- Continue content refinement, image optimization, and curatorial polish without changing the static architecture
 
 Out of scope for this phase:
 - Login
 - Upload
 - Database
 - Supabase
-- Download
 - Comments, likes, favorites
