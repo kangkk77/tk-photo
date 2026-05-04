@@ -1,6 +1,6 @@
 # T&K Photo Progress
 
-Last updated: 2026-05-03
+Last updated: 2026-05-04
 
 ## Current Status
 
@@ -11,6 +11,96 @@ Live site:
 
 Build status:
 - `npm run build` passes
+
+## V2 Upload Branch Status
+
+Branch:
+- `v2-upload`
+
+Current focus:
+- V2 Phase 3: authentication and protected studio routes
+
+### V2 Phase 1: Data Access Layer Abstraction
+
+Completed:
+- Added `V2_ARCHITECTURE_REVIEW.md`
+- Added `src/services/galleryService.ts`
+- Implemented async gallery service functions:
+  - `getAlbums()`
+  - `getFeaturedAlbums(limit?: number)`
+  - `getAlbumById(albumId: string)`
+  - `getPhotoById(albumId: string, photoId: string)`
+  - `getAdjacentPhotos(albumId: string, photoId: string)`
+- Kept `src/data/albums.ts` as the current source of truth
+- Updated public pages to stop importing `albums` directly:
+  - `HomePage`
+  - `AlbumListPage`
+  - `AlbumDetailPage`
+  - `PhotoDetailPage`
+- Added `loading`, `error`, and `not found` handling to the page-level data flow
+- Preserved current `HashRouter`, `getImagePath()` rules, visual components, and photo paths
+
+Verification:
+- `npm run build` passed
+
+### V2 Phase 2: Supabase Infrastructure Preparation
+
+Completed:
+- Installed `@supabase/supabase-js`
+- Added `.env.example`
+- Updated `.gitignore` to ignore local `.env` files while keeping `.env.example`
+- Added `src/lib/supabaseClient.ts`
+- Added typed Supabase database draft definitions in `src/types/database.ts`
+- Added `supabase/schema.sql`
+- Added `supabase/storage.md`
+- Prepared minimal V2 MVP schema with:
+  - `profiles`
+  - `albums`
+  - `photos`
+- Kept EXIF fields directly on `photos`
+- Enabled RLS on all three tables
+- Added simple ownership-based policies:
+  - public can read public albums and their photos
+  - authenticated users can create their own albums
+  - authenticated users can update and delete their own albums
+  - authenticated users can create, update, and delete photos inside their own albums
+- Kept `galleryService` on static `src/data/albums.ts`
+- Did not add login pages, upload pages, or Supabase-powered public page reads yet
+
+Verification:
+- `npm run build` passed
+
+### V2 Phase 3: Authentication And Protected Studio Routes
+
+Completed:
+- Added `src/services/authService.ts`
+- Implemented auth service functions:
+  - `getCurrentUser()`
+  - `signInWithEmail(email, password)`
+  - `signOut()`
+  - `onAuthStateChange(callback)`
+- Added `src/hooks/useAuth.ts`
+- Added app-level auth provider with:
+  - `user`
+  - `loading`
+  - `isAuthenticated`
+  - `signIn`
+  - `signOut`
+- Added `src/components/ProtectedRoute.tsx`
+- Added `src/pages/LoginPage.tsx`
+- Added `src/pages/AdminPage.tsx`
+- Added `/login` route
+- Added protected `/admin` route
+- Redirected unauthenticated `/admin` access to `/login`
+- Redirected authenticated `/login` access to `/admin`
+- Updated `Header` to show:
+  - `Login` entry when signed out
+  - `Admin` entry and `Sign Out` action when signed in
+- Kept public exhibition pages on their existing static data flow
+- Kept `HashRouter` unchanged
+
+Verification:
+- `npm run build` passed
 
 ## Completed Phases
 

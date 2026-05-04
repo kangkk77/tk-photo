@@ -1,25 +1,113 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import BackButton from '../components/BackButton'
 import ExifPanel from '../components/ExifPanel'
 import PhotoDetail from '../components/PhotoDetail'
-import { albums } from '../data/albums'
+import type { Album, Photo } from '../types'
+import {
+  getAdjacentPhotos,
+  getPhotoById,
+} from '../services/galleryService'
+
+interface PhotoPageState {
+  album: Album | null
+  photo: Photo | null
+  previousPhoto: Photo | null
+  nextPhoto: Photo | null
+  currentIndex: number
+  totalPhotos: number
+}
 
 function PhotoDetailPage() {
   const { albumId, photoId } = useParams()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const [pageState, setPageState] = useState<PhotoPageState>({
+    album: null,
+    photo: null,
+    previousPhoto: null,
+    nextPhoto: null,
+    currentIndex: -1,
+    totalPhotos: 0,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const album = albums.find((entry) => entry.id === albumId)
-  const currentIndex = album?.photos.findIndex((entry) => entry.id === photoId) ?? -1
-  const photo = currentIndex >= 0 && album ? album.photos[currentIndex] : undefined
-  const previousPhoto =
-    album && currentIndex > 0 ? album.photos[currentIndex - 1] : undefined
-  const nextPhoto =
-    album && currentIndex >= 0 && currentIndex < album.photos.length - 1
-      ? album.photos[currentIndex + 1]
-      : undefined
+  const { album, photo, previousPhoto, nextPhoto, currentIndex, totalPhotos } =
+    pageState
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadPhoto = async () => {
+      if (!albumId || !photoId) {
+        setPageState({
+          album: null,
+          photo: null,
+          previousPhoto: null,
+          nextPhoto: null,
+          currentIndex: -1,
+          totalPhotos: 0,
+        })
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setErrorMessage(null)
+
+        const [photoResult, adjacentResult] = await Promise.all([
+          getPhotoById(albumId, photoId),
+          getAdjacentPhotos(albumId, photoId),
+        ])
+
+        if (!isActive) {
+          return
+        }
+
+        if (!photoResult || !adjacentResult) {
+          setPageState({
+            album: null,
+            photo: null,
+            previousPhoto: null,
+            nextPhoto: null,
+            currentIndex: -1,
+            totalPhotos: 0,
+          })
+          return
+        }
+
+        setPageState({
+          album: photoResult.album,
+          photo: photoResult.photo,
+          previousPhoto: adjacentResult.previousPhoto,
+          nextPhoto: adjacentResult.nextPhoto,
+          currentIndex: adjacentResult.currentIndex,
+          totalPhotos: adjacentResult.totalPhotos,
+        })
+      } catch (error) {
+        if (!isActive) {
+          return
+        }
+
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Unable to load photo.',
+        )
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadPhoto()
+
+    return () => {
+      isActive = false
+    }
+  }, [albumId, photoId])
 
   useEffect(() => {
     if (!album || !photo) {
@@ -53,6 +141,52 @@ function PhotoDetailPage() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [album, navigate, nextPhoto, photo, previousPhoto])
+
+  if (isLoading) {
+    return (
+      <section className="space-y-10">
+        <BackButton fallbackTo="/albums" />
+
+        <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
+          <p className="text-xs uppercase tracking-[0.28em] text-muted">
+            Loading Work
+          </p>
+          <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
+            Preparing this photograph for viewing.
+          </h1>
+          <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
+            The work details and adjacent navigation are being loaded.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  if (errorMessage) {
+    return (
+      <section className="space-y-10">
+        <BackButton fallbackTo="/albums" />
+
+        <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
+          <p className="text-xs uppercase tracking-[0.28em] text-muted">
+            Load Error
+          </p>
+          <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
+            This photograph could not be loaded.
+          </h1>
+          <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
+            {errorMessage}
+          </p>
+          <Link
+            to="/albums"
+            className="inline-flex text-sm tracking-[0.08em] text-soft transition-colors hover:text-accent"
+          >
+            Return to all albums
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   if (!album || !photo) {
     return (
@@ -97,7 +231,7 @@ function PhotoDetailPage() {
           photo={photo}
           albumTitle={album.title}
           currentIndex={currentIndex}
-          totalPhotos={album.photos.length}
+          totalPhotos={totalPhotos}
           previousPhoto={
             previousPhoto
               ? {

@@ -1,11 +1,104 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BackButton from '../components/BackButton'
 import PhotoWall from '../components/PhotoWall'
-import { albums } from '../data/albums'
+import type { Album } from '../types'
+import { getAlbumById } from '../services/galleryService'
 
 function AlbumDetailPage() {
   const { albumId } = useParams()
-  const album = albums.find((entry) => entry.id === albumId)
+  const [album, setAlbum] = useState<Album | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadAlbum = async () => {
+      if (!albumId) {
+        setAlbum(null)
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setErrorMessage(null)
+
+        const result = await getAlbumById(albumId)
+
+        if (!isActive) {
+          return
+        }
+
+        setAlbum(result)
+      } catch (error) {
+        if (!isActive) {
+          return
+        }
+
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Unable to load album.',
+        )
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadAlbum()
+
+    return () => {
+      isActive = false
+    }
+  }, [albumId])
+
+  if (isLoading) {
+    return (
+      <section className="space-y-10">
+        <BackButton fallbackTo="/albums" />
+
+        <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
+          <p className="text-xs uppercase tracking-[0.28em] text-muted">
+            Loading Album
+          </p>
+          <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
+            Preparing this exhibition sequence.
+          </h1>
+          <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
+            The album details are being loaded.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  if (errorMessage) {
+    return (
+      <section className="space-y-10">
+        <BackButton fallbackTo="/albums" />
+
+        <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
+          <p className="text-xs uppercase tracking-[0.28em] text-muted">
+            Load Error
+          </p>
+          <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
+            The exhibition sequence could not be loaded.
+          </h1>
+          <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
+            {errorMessage}
+          </p>
+          <Link
+            to="/albums"
+            className="inline-flex text-sm tracking-[0.08em] text-soft transition-colors hover:text-accent"
+          >
+            Return to all albums
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   if (!album) {
     return (

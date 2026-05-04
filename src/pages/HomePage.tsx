@@ -1,11 +1,54 @@
+import { useEffect, useState } from 'react'
 import AlbumGrid from '../components/AlbumGrid'
 import GalleryHero from '../components/GalleryHero'
-import { albums } from '../data/albums'
 import { siteConfig } from '../data/site'
+import type { Album } from '../types'
+import { getFeaturedAlbums } from '../services/galleryService'
 
 function HomePage() {
-  const featuredAlbums = albums.slice(0, 4)
+  const [featuredAlbums, setFeaturedAlbums] = useState<Album[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const heroAlbum = featuredAlbums[0]
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadFeaturedAlbums = async () => {
+      try {
+        setIsLoading(true)
+        setErrorMessage(null)
+
+        const results = await getFeaturedAlbums(4)
+
+        if (!isActive) {
+          return
+        }
+
+        setFeaturedAlbums(results)
+      } catch (error) {
+        if (!isActive) {
+          return
+        }
+
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'Unable to load featured albums.',
+        )
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadFeaturedAlbums()
+
+    return () => {
+      isActive = false
+    }
+  }, [])
 
   return (
     <div className="-mx-6 space-y-0 pb-8 md:-mx-12 md:pb-12">
@@ -36,7 +79,32 @@ function HomePage() {
             </p>
           </div>
 
-          <AlbumGrid albums={featuredAlbums} />
+          {isLoading ? (
+            <p className="text-sm leading-8 text-soft md:text-base">
+              Loading the selected sequence...
+            </p>
+          ) : errorMessage ? (
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-muted">
+                Load Error
+              </p>
+              <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
+                {errorMessage}
+              </p>
+            </div>
+          ) : featuredAlbums.length === 0 ? (
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-muted">
+                No Albums Yet
+              </p>
+              <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
+                Featured exhibition sequences will appear here once the
+                collection is available.
+              </p>
+            </div>
+          ) : (
+            <AlbumGrid albums={featuredAlbums} />
+          )}
         </div>
       </section>
     </div>
