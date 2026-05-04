@@ -278,6 +278,16 @@ function PhotoDetailPage() {
             <p className="text-sm leading-8 text-soft md:text-base">
               {photo.description}
             </p>
+            {photo.note?.trim() ? (
+              <div className="space-y-3 border-t border-subtle pt-5">
+                <p className="text-xs uppercase tracking-[0.28em] text-muted">
+                  {t('photoDetail.noteLabel')}
+                </p>
+                <p className="text-sm leading-8 text-soft md:text-base">
+                  {photo.note}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           <ExifPanel photo={photo} />

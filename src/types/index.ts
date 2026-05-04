@@ -18,7 +18,8 @@ export interface Photo {
   albumId: string
   title: string
   description: string
-  image: ImageRelativePath
+  note?: string
+  image: string
   date: string
   location: string
   camera: string
@@ -36,7 +37,7 @@ export interface Album {
   title: string
   subtitle: string
   description: string
-  coverImage: ImageRelativePath
+  coverImage: string
   theme: AlbumTheme
   date: string
   location: string

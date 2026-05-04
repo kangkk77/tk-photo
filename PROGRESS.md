@@ -18,7 +18,7 @@ Branch:
 - `v2-upload`
 
 Current focus:
-- V2 Phase 5 preparation: public exhibition page data migration
+- V2 Phase 6 preparation: release migration and launch hardening
 
 ### V2 Phase 1: Data Access Layer Abstraction
 
@@ -231,6 +231,31 @@ Completed:
 Verification:
 - `npm run build` passed
 
+### V2 Phase 5: Public Exhibition Pages Switched To Supabase With Static Fallback
+
+Completed:
+- Upgraded `src/services/galleryService.ts` to prefer Supabase public albums and photos
+- Kept static `src/data/albums.ts` as a fallback when:
+  - Supabase environment variables are missing
+  - Supabase public gallery queries fail
+  - the public collection is still empty
+- Added Supabase-to-front-end gallery mapping in:
+  - `src/services/galleryMappers.ts`
+- Converted Supabase `albums` and `photos` rows into the existing public `Album` and `Photo` shapes
+- Resolved Storage paths through `supabase.storage.from('photos').getPublicUrl(...)`
+- Used the first photo as the public cover when `albums.cover_image` is empty
+- Kept public pages reading only through `galleryService`:
+  - `HomePage`
+  - `AlbumListPage`
+  - `AlbumDetailPage`
+  - `PhotoDetailPage`
+- Added optional `note` support to the front-end `Photo` type
+- Added public photo note rendering on the photo detail page without changing the broader exhibition layout
+- Kept dev-only `console.info` source hints so it is visible whether the public gallery is using Supabase or static fallback
+
+Verification:
+- `npm run build` passed
+
 ## Completed Phases
 
 ### Phase 1: Project Foundation
@@ -437,9 +462,11 @@ Implemented:
 - About page exhibition content
 - GitHub Pages deployment workflow
 - Live GitHub Pages deployment
+- Supabase-backed public exhibition reads with static fallback
+- Admin login, album management, photo upload, photo editing, note, and cover management
+- Lightweight Chinese and English i18n across the public site and studio
 
 Not fully implemented yet:
-- Supabase-backed public exhibition page reads
 - Photo preview and thumbnail generation
 - Multi-photo upload
 - Drag-and-drop upload
@@ -452,7 +479,7 @@ Not fully implemented yet:
 ### Next Candidate Phase
 
 Goal:
-- Switch public exhibition page reads from static album data to Supabase while preserving the V1 exhibition presentation
+- Prepare Phase 6 migration and launch hardening for the Supabase-backed V2 workflow
 
 Out of scope for this phase:
 - Complex collaboration roles
