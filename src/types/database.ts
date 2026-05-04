@@ -97,6 +97,7 @@ export interface Database {
           album_id: string
           title: string | null
           description: string | null
+          note: string | null
           image_path: string
           date: string | null
           location: string | null
@@ -117,6 +118,7 @@ export interface Database {
           album_id: string
           title?: string | null
           description?: string | null
+          note?: string | null
           image_path: string
           date?: string | null
           location?: string | null
@@ -137,6 +139,7 @@ export interface Database {
           album_id?: string
           title?: string | null
           description?: string | null
+          note?: string | null
           image_path?: string
           date?: string | null
           location?: string | null

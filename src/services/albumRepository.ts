@@ -29,19 +29,18 @@ function mapAlbumInput(
   input: AlbumMutationInput,
 ): Pick<
   AlbumInsert,
-  'title' | 'subtitle' | 'description' | 'cover_image' | 'theme' | 'date' | 'location' | 'visibility'
+  'title' | 'subtitle' | 'description' | 'theme' | 'date' | 'location' | 'visibility'
 > {
   const trimmedTitle = input.title.trim()
 
   if (!trimmedTitle) {
-    throw new Error('Album title is required.')
+    throw new Error('相册标题不能为空。')
   }
 
   return {
     title: trimmedTitle,
     subtitle: normalizeText(input.subtitle),
     description: normalizeText(input.description),
-    cover_image: input.coverImage ?? null,
     theme: input.theme ?? null,
     date: normalizeText(input.date),
     location: normalizeText(input.location),
@@ -53,7 +52,7 @@ async function requireCurrentUserId() {
   const user = await getCurrentUser()
 
   if (!user) {
-    throw new Error('You must be signed in to manage albums.')
+    throw new Error('请先登录后再管理相册。')
   }
 
   return user.id
@@ -84,6 +83,7 @@ export async function createAlbum(input: AlbumMutationInput): Promise<AlbumRow> 
   const supabase = getSupabaseClient()
   const payload: AlbumInsert = {
     ...mapAlbumInput(input),
+    cover_image: input.coverImage ?? null,
     created_by: userId,
   }
 
@@ -98,7 +98,7 @@ export async function createAlbum(input: AlbumMutationInput): Promise<AlbumRow> 
   throwIfSupabaseError(error)
 
   if (!data) {
-    throw new Error('Album creation returned no data.')
+    throw new Error('创建相册后没有返回数据。')
   }
 
   return data
@@ -110,7 +110,13 @@ export async function updateAlbum(
 ): Promise<AlbumRow> {
   const userId = await requireCurrentUserId()
   const supabase = getSupabaseClient()
-  const payload: AlbumUpdate = mapAlbumInput(input)
+  const payload: AlbumUpdate = {
+    ...mapAlbumInput(input),
+  }
+
+  if ('coverImage' in input) {
+    payload.cover_image = input.coverImage ?? null
+  }
 
   const { data, error } = await supabase
     .from('albums')
@@ -123,7 +129,34 @@ export async function updateAlbum(
   throwIfSupabaseError(error)
 
   if (!data) {
-    throw new Error('Album update returned no data.')
+    throw new Error('更新相册后没有返回数据。')
+  }
+
+  return data
+}
+
+export async function setAlbumCover(
+  albumId: string,
+  imagePath: string | null,
+): Promise<AlbumRow> {
+  const userId = await requireCurrentUserId()
+  const supabase = getSupabaseClient()
+  const coverImage = normalizeText(imagePath ?? undefined)
+
+  const { data, error } = await supabase
+    .from('albums')
+    .update({
+      cover_image: coverImage,
+    })
+    .eq('id', albumId)
+    .eq('created_by', userId)
+    .select('*')
+    .single()
+
+  throwIfSupabaseError(error)
+
+  if (!data) {
+    throw new Error('设置相册封面后没有返回数据。')
   }
 
   return data

@@ -1,11 +1,21 @@
 import { getSupabaseClient } from '../lib/supabaseClient'
-import type { PhotoInsert, PhotoRow } from '../types/database'
+import type { PhotoLayout } from '../types'
+import type { PhotoInsert, PhotoRow, PhotoUpdate } from '../types/database'
 import { getCurrentUser } from './authService'
 import { parseImageExif } from '../utils/exif'
 
 export interface PhotoUploadInput {
   title?: string
   description?: string
+}
+
+export interface PhotoMutationInput {
+  title?: string
+  description?: string
+  note?: string
+  date?: string
+  location?: string
+  layout?: PhotoLayout | null
 }
 
 function normalizeText(value: string | undefined): string | null {
@@ -26,7 +36,7 @@ async function requireCurrentUser() {
   const user = await getCurrentUser()
 
   if (!user) {
-    throw new Error('You must be signed in to manage photos.')
+    throw new Error('请先登录后再管理照片。')
   }
 
   return user
@@ -79,7 +89,7 @@ export async function uploadPhotoToAlbum(
   const user = await requireCurrentUser()
 
   if (file.type && !file.type.startsWith('image/')) {
-    throw new Error('Only image files can be uploaded to an album.')
+    throw new Error('只能上传图片文件。')
   }
 
   const supabase = getSupabaseClient()
@@ -139,7 +149,41 @@ export async function uploadPhotoToAlbum(
   }
 
   if (!data) {
-    throw new Error('Photo upload completed without a returned record.')
+    throw new Error('上传照片后没有返回数据。')
+  }
+
+  return data
+}
+
+export async function updatePhoto(
+  photoId: string,
+  input: PhotoMutationInput,
+): Promise<PhotoRow> {
+  const user = await requireCurrentUser()
+  const supabase = getSupabaseClient()
+  const payload: PhotoUpdate = {
+    title: normalizeText(input.title),
+    description: normalizeText(input.description),
+    note: normalizeText(input.note),
+    date: normalizeText(input.date),
+    location: normalizeText(input.location),
+    layout: input.layout ?? null,
+  }
+
+  console.log('updatePhoto payload', payload)
+
+  const { data, error } = await supabase
+    .from('photos')
+    .update(payload)
+    .eq('id', photoId)
+    .eq('created_by', user.id)
+    .select('*')
+    .single()
+
+  throwIfError(error, '无法更新照片信息。')
+
+  if (!data) {
+    throw new Error('更新照片后没有返回数据。')
   }
 
   return data
@@ -159,7 +203,7 @@ export async function deletePhoto(photoId: string): Promise<void> {
   throwIfError(photoLookupError, 'Unable to load the selected photo.')
 
   if (!photo) {
-    throw new Error('Photo not found.')
+    throw new Error('未找到这张照片。')
   }
 
   const { error: deleteRecordError } = await supabase

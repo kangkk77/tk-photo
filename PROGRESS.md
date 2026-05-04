@@ -156,6 +156,39 @@ Completed:
 Verification:
 - `npm run build` passed
 
+### V2 Phase 4C: Portfolio And Photo Management Refinement
+
+Completed:
+- Added `supabase/migrations/add_photo_note.sql`
+- Updated `supabase/schema.sql` so new environments include `photos.note`
+- Added `note` to the Supabase front-end database draft types
+- Extended `albumRepository` with:
+  - safe `updateAlbum(id, input)` behavior that no longer clears `cover_image` unless explicitly provided
+  - `setAlbumCover(albumId, imagePath)`
+- Extended `photoRepository` with:
+  - `updatePhoto(photoId, input)`
+  - support for `note`, `date`, `location`, and `layout` updates without touching EXIF fields
+- Upgraded `AdminAlbumsPanel` with:
+  - Chinese admin copy
+  - album edit flow
+  - save, cancel, success, and error states
+  - live album cover status
+- Upgraded `AdminPhotoUploadPanel` with:
+  - Chinese admin copy
+  - photo edit flow
+  - note textarea for photo essays and stories
+  - description and note summaries in the list
+  - EXIF summary display
+  - set-as-cover action
+  - cover cleanup when deleting the current cover photo
+- Updated the admin dashboard copy to match the refined studio workflow
+
+Manual step required:
+- Existing Supabase projects need `supabase/migrations/add_photo_note.sql` executed in the SQL Editor to add `public.photos.note`
+
+Verification:
+- `npm run build` passed
+
 ## Completed Phases
 
 ### Phase 1: Project Foundation

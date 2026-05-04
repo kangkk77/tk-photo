@@ -40,6 +40,7 @@ create table if not exists public.photos (
   album_id uuid not null references public.albums(id) on delete cascade,
   title text,
   description text,
+  note text,
   image_path text not null,
   date text,
   location text,
