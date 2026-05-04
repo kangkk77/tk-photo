@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../hooks/useI18n'
 import type { Album } from '../types'
 import { getImagePath } from '../utils/paths'
 
@@ -13,6 +14,7 @@ type AlbumCardProps = {
 function AlbumCard({ album, index, className = '' }: AlbumCardProps) {
   const [imageMissing, setImageMissing] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+  const { t } = useI18n()
 
   return (
     <motion.article
@@ -29,7 +31,7 @@ function AlbumCard({ album, index, className = '' }: AlbumCardProps) {
       <Link
         to={`/albums/${album.id}`}
         className="group block"
-        aria-label={`Open album ${album.title}`}
+        aria-label={t('albumCard.openAlbumAria', { title: album.title })}
       >
         <figure className="space-y-5 md:space-y-6">
           <motion.div
@@ -63,7 +65,7 @@ function AlbumCard({ album, index, className = '' }: AlbumCardProps) {
             <div className="space-y-3">
               <div className="space-y-2">
                 <p className="text-[11px] uppercase tracking-[0.28em] text-muted">
-                  Selected Album
+                  {t('albumCard.selectedAlbum')}
                 </p>
                 <h2 className="font-serif text-[2rem] leading-tight text-ink transition-colors duration-300 group-hover:text-accent md:text-[2.35rem]">
                   {album.title}
@@ -79,7 +81,7 @@ function AlbumCard({ album, index, className = '' }: AlbumCardProps) {
 
             <div className="space-y-3 md:pt-2 md:text-right">
               <p className="text-xs uppercase tracking-[0.22em] text-muted">
-                {album.photos.length} Photos
+                {t('albumCard.photosCount', { count: album.photos.length })}
               </p>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted md:justify-end">
                 <span>{album.date}</span>

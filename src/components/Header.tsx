@@ -1,17 +1,18 @@
 import { Camera } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useI18n } from '../hooks/useI18n'
 import ThemeToggle from './ThemeToggle'
-
-const navItems = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/albums', label: 'Albums' },
-  { to: '/about', label: 'About' },
-]
 
 function Header() {
   const { isAuthenticated, signOut, user } = useAuth()
+  const { locale, setLocale, t } = useI18n()
   const navigate = useNavigate()
+  const navItems = [
+    { to: '/', label: t('nav.home'), end: true },
+    { to: '/albums', label: t('nav.albums') },
+    { to: '/about', label: t('nav.about') },
+  ]
 
   const handleSignOut = async () => {
     await signOut()
@@ -56,7 +57,7 @@ function Header() {
                     : 'transition-colors hover:text-accent'
                 }
               >
-                Admin
+                {t('nav.admin')}
               </NavLink>
             ) : (
               <NavLink
@@ -67,7 +68,7 @@ function Header() {
                     : 'transition-colors hover:text-accent'
                 }
               >
-                Login
+                {t('nav.login')}
               </NavLink>
             )}
           </nav>
@@ -77,11 +78,40 @@ function Header() {
               type="button"
               onClick={handleSignOut}
               className="text-sm tracking-[0.08em] text-soft transition-colors hover:text-accent"
-              aria-label={`Sign out ${user?.email ?? ''}`.trim()}
+              aria-label={t('header.signOutAria', { email: user?.email ?? '' }).trim()}
             >
-              Sign Out
+              {t('common.actions.logout')}
             </button>
           ) : null}
+
+          <div
+            aria-label={t('header.languageSwitchLabel')}
+            className="flex items-center gap-2 border-l border-subtle/70 pl-3 text-xs tracking-[0.16em] text-soft md:pl-4"
+          >
+            <button
+              type="button"
+              onClick={() => setLocale('zh-CN')}
+              className={
+                locale === 'zh-CN'
+                  ? 'text-ink'
+                  : 'transition-colors hover:text-accent'
+              }
+            >
+              {t('common.locale.zhCN')}
+            </button>
+            <span className="text-muted/70">/</span>
+            <button
+              type="button"
+              onClick={() => setLocale('en-US')}
+              className={
+                locale === 'en-US'
+                  ? 'text-ink'
+                  : 'transition-colors hover:text-accent'
+              }
+            >
+              {t('common.locale.enUS')}
+            </button>
+          </div>
 
           <ThemeToggle />
         </div>

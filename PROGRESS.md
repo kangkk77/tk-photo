@@ -189,6 +189,48 @@ Manual step required:
 Verification:
 - `npm run build` passed
 
+### V2 Phase 4D: Lightweight Chinese And English I18n
+
+Completed:
+- Added a lightweight app-wide i18n layer with:
+  - `src/i18n/dictionaries.ts`
+  - `src/hooks/useI18n.ts`
+  - `localStorage` persistence for the selected locale
+- Set the default locale to `zh-CN`
+- Added a subtle `中文 / EN` switch in the header without changing the router or data sources
+- Connected public exhibition pages and shared components to i18n:
+  - `HomePage`
+  - `AlbumListPage`
+  - `AlbumDetailPage`
+  - `PhotoDetailPage`
+  - `AboutPage`
+  - `Header`
+  - `Footer`
+  - `BackButton`
+  - `ExifPanel`
+  - `NotFoundPage`
+  - shared visible text in `AlbumCard`, `MotionImage`, and `PhotoDetail`
+- Connected studio and auth pages to i18n:
+  - `LoginPage`
+  - `AdminPage`
+  - `AdminAlbumsPanel`
+  - `AdminPhotoUploadPanel`
+  - `ProtectedRoute`
+  - `ThemeToggle` accessibility labels
+- Added bilingual EXIF labels, including:
+  - camera
+  - lens
+  - aperture
+  - shutter
+  - ISO
+  - focal length
+  - date
+  - location
+- Added `V2_PRODUCT_REQUIREMENTS.md` to record the current bilingual V2 requirements
+
+Verification:
+- `npm run build` passed
+
 ## Completed Phases
 
 ### Phase 1: Project Foundation

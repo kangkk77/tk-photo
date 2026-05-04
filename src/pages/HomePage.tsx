@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import AlbumGrid from '../components/AlbumGrid'
 import GalleryHero from '../components/GalleryHero'
 import { siteConfig } from '../data/site'
+import { useI18n } from '../hooks/useI18n'
 import type { Album } from '../types'
 import { getFeaturedAlbums } from '../services/galleryService'
 
 function HomePage() {
+  const { t } = useI18n()
   const [featuredAlbums, setFeaturedAlbums] = useState<Album[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -34,7 +36,7 @@ function HomePage() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : 'Unable to load featured albums.',
+            : t('common.status.somethingWentWrong'),
         )
       } finally {
         if (isActive) {
@@ -48,14 +50,14 @@ function HomePage() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [t])
 
   return (
     <div className="-mx-6 space-y-0 pb-8 md:-mx-12 md:pb-12">
       <GalleryHero
         title={siteConfig.title}
-        subtitle={siteConfig.subtitle}
-        description={siteConfig.description}
+        subtitle={t('site.subtitle')}
+        description={t('site.description')}
         backgroundImage={heroAlbum?.coverImage}
         featuredAlbumTitle={heroAlbum?.title}
         featuredAlbumSubtitle={heroAlbum?.subtitle}
@@ -67,26 +69,24 @@ function HomePage() {
         <div className="border-t border-subtle bg-canvas px-0 pt-10 md:pt-12">
           <div className="mb-12 flex flex-col gap-5 md:mb-16 md:max-w-3xl">
             <p className="text-xs uppercase tracking-[0.3em] text-muted">
-              Selected Albums
+              {t('home.overline')}
             </p>
             <h2 className="font-serif text-3xl leading-tight text-ink md:text-5xl">
-              Photographs arranged as sequences, not as a utility gallery.
+              {t('home.title')}
             </h2>
             <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-              The homepage moves directly from the opening frame into a curated
-              set of albums, so the first scroll already feels like stepping
-              deeper into the exhibition.
+              {t('home.description')}
             </p>
           </div>
 
           {isLoading ? (
             <p className="text-sm leading-8 text-soft md:text-base">
-              Loading the selected sequence...
+              {t('home.loading')}
             </p>
           ) : errorMessage ? (
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-muted">
-                Load Error
+                {t('home.loadErrorLabel')}
               </p>
               <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
                 {errorMessage}
@@ -95,11 +95,10 @@ function HomePage() {
           ) : featuredAlbums.length === 0 ? (
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-muted">
-                No Albums Yet
+                {t('home.noAlbumsLabel')}
               </p>
               <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-                Featured exhibition sequences will appear here once the
-                collection is available.
+                {t('home.noAlbumsDescription')}
               </p>
             </div>
           ) : (

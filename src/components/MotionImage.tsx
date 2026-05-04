@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../hooks/useI18n'
 import type { Photo } from '../types'
 import { getImagePath } from '../utils/paths'
 
@@ -30,6 +31,7 @@ function MotionImage({ photo, index, className = '' }: MotionImageProps) {
   const [imageMissing, setImageMissing] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const aspectClass = getAspectClass(photo)
+  const { t } = useI18n()
 
   return (
     <motion.figure
@@ -46,7 +48,7 @@ function MotionImage({ photo, index, className = '' }: MotionImageProps) {
       <Link
         to={`/albums/${photo.albumId}/${photo.id}`}
         className="group block"
-        aria-label={`Open photo ${photo.title}`}
+        aria-label={t('photoWall.openPhotoAria', { title: photo.title })}
       >
         <motion.div
           whileHover={shouldReduceMotion ? undefined : { scale: 1.015 }}
@@ -72,7 +74,7 @@ function MotionImage({ photo, index, className = '' }: MotionImageProps) {
             >
               <div className="space-y-2">
                 <p className="text-[11px] uppercase tracking-[0.28em] text-muted">
-                  Image Pending
+                  {t('photoWall.imagePending')}
                 </p>
                 <p className="max-w-sm font-serif text-2xl leading-tight text-soft md:text-3xl">
                   {photo.title}

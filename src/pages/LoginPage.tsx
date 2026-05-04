@@ -2,9 +2,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useI18n } from '../hooks/useI18n'
 
 function LoginPage() {
   const { isAuthenticated, loading, signIn } = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
@@ -34,11 +36,12 @@ function LoginPage() {
       await signIn(email.trim(), password)
       navigate(redirectTo, { replace: true })
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
+      const message =
+        error instanceof Error && error.message.trim()
           ? error.message
-          : 'Unable to sign in with the provided credentials.',
-      )
+          : t('common.status.somethingWentWrong')
+
+      setErrorMessage(t('login.errorPrefix', { message }))
     } finally {
       setIsSubmitting(false)
     }
@@ -48,14 +51,13 @@ function LoginPage() {
     <section className="space-y-14 md:space-y-18">
       <div className="max-w-3xl space-y-5 pt-4 md:pt-8">
         <p className="text-xs uppercase tracking-[0.3em] text-muted">
-          Studio Access
+          {t('login.overline')}
         </p>
         <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
-          Sign in to the private upload edition.
+          {t('login.title')}
         </h1>
         <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-          The public exhibition remains open, while the studio route is
-          reserved for managing future uploads and album work.
+          {t('login.description')}
         </p>
       </div>
 
@@ -67,7 +69,7 @@ function LoginPage() {
                 htmlFor="email"
                 className="text-xs uppercase tracking-[0.28em] text-muted"
               >
-                Email
+                {t('login.email')}
               </label>
               <input
                 id="email"
@@ -86,7 +88,7 @@ function LoginPage() {
                 htmlFor="password"
                 className="text-xs uppercase tracking-[0.28em] text-muted"
               >
-                Password
+                {t('login.password')}
               </label>
               <input
                 id="password"
@@ -95,7 +97,7 @@ function LoginPage() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-                placeholder="Enter your password"
+                placeholder={t('login.passwordPlaceholder')}
                 required
               />
             </div>
@@ -104,7 +106,7 @@ function LoginPage() {
           {errorMessage ? (
             <div className="space-y-2 border-t border-subtle pt-5">
               <p className="text-xs uppercase tracking-[0.28em] text-muted">
-                Sign In Error
+                {t('login.errorLabel')}
               </p>
               <p className="max-w-xl text-sm leading-8 text-soft md:text-base">
                 {errorMessage}
@@ -118,29 +120,20 @@ function LoginPage() {
               disabled={isSubmitting}
               className="inline-flex min-w-32 items-center justify-center border border-subtle px-5 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
             >
-              {isSubmitting ? 'Signing In...' : 'Sign In'}
+              {isSubmitting ? t('login.submitting') : t('login.submit')}
             </button>
-            <p className="text-sm leading-7 text-muted">
-              Email and password authentication is enabled for the V2 studio
-              preview.
-            </p>
+            <p className="text-sm leading-7 text-muted">{t('login.hint')}</p>
           </div>
         </form>
 
         <aside className="space-y-5 border-t border-subtle/80 pt-5 md:border-l md:border-t-0 md:pl-8 md:pt-1">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            Access Notes
+            {t('login.accessNotes')}
           </p>
           <div className="space-y-4 text-sm leading-8 text-soft md:text-base">
-            <p>The studio route is separate from the public exhibition flow.</p>
-            <p>
-              This round only prepares authentication, route protection, and a
-              minimal private dashboard.
-            </p>
-            <p>
-              Albums, uploads, and editing tools will arrive in later V2
-              phases.
-            </p>
+            <p>{t('login.noteOne')}</p>
+            <p>{t('login.noteTwo')}</p>
+            <p>{t('login.noteThree')}</p>
           </div>
         </aside>
       </div>

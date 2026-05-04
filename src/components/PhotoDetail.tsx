@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../hooks/useI18n'
 import type { Photo } from '../types'
 import { getImagePath } from '../utils/paths'
 
@@ -30,6 +31,7 @@ function PhotoDetail({
 }: PhotoDetailProps) {
   const [imageMissing, setImageMissing] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+  const { t } = useI18n()
 
   return (
     <div className="space-y-6">
@@ -56,7 +58,7 @@ function PhotoDetail({
             <div className="flex min-h-[22rem] items-end bg-[linear-gradient(180deg,rgba(242,240,236,0.16),rgba(242,240,236,0.68))] p-6 md:min-h-[34rem] md:p-10">
               <div className="space-y-2">
                 <p className="text-[11px] uppercase tracking-[0.28em] text-muted">
-                  Image Pending
+                  {t('photoDetail.imagePending')}
                 </p>
                 <p className="max-w-lg font-serif text-3xl leading-tight text-soft md:text-5xl">
                   {photo.title}
@@ -68,11 +70,14 @@ function PhotoDetail({
 
         <figcaption className="flex flex-col gap-3 border-t border-subtle/80 pt-4 text-sm text-soft md:flex-row md:items-center md:justify-between">
           <p className="tracking-[0.08em]">
-            {albumTitle} / {String(currentIndex + 1).padStart(2, '0')} of{' '}
-            {String(totalPhotos).padStart(2, '0')}
+            {t('photoDetail.counter', {
+              albumTitle,
+              current: String(currentIndex + 1).padStart(2, '0'),
+              total: String(totalPhotos).padStart(2, '0'),
+            })}
           </p>
           <p className="text-xs uppercase tracking-[0.26em] text-muted">
-            Use Arrow Keys To Navigate
+            {t('photoDetail.useArrowKeys')}
           </p>
         </figcaption>
       </motion.figure>
@@ -84,12 +89,12 @@ function PhotoDetail({
             className="inline-flex items-center gap-2 text-sm text-soft transition-colors hover:text-accent"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
-            <span>Previous</span>
+            <span>{t('photoDetail.previous')}</span>
           </Link>
         ) : (
           <span className="inline-flex items-center gap-2 text-sm text-muted/60">
             <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
-            <span>Previous</span>
+            <span>{t('photoDetail.previous')}</span>
           </span>
         )}
 
@@ -98,12 +103,12 @@ function PhotoDetail({
             to={nextPhoto.to}
             className="inline-flex items-center gap-2 text-sm text-soft transition-colors hover:text-accent"
           >
-            <span>Next</span>
+            <span>{t('photoDetail.next')}</span>
             <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
           </Link>
         ) : (
           <span className="inline-flex items-center gap-2 text-sm text-muted/60">
-            <span>Next</span>
+            <span>{t('photoDetail.next')}</span>
             <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
           </span>
         )}

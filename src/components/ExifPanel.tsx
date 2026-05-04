@@ -1,4 +1,5 @@
 import type { Photo } from '../types'
+import { useI18n } from '../hooks/useI18n'
 
 type ExifPanelProps = {
   photo: Photo
@@ -10,19 +11,22 @@ type ExifRow = {
 }
 
 function ExifPanel({ photo }: ExifPanelProps) {
+  const { t } = useI18n()
   const rows: ExifRow[] = [
-    { label: 'CAMERA', value: photo.camera },
-    { label: 'LENS', value: photo.lens },
-    { label: 'APERTURE', value: photo.aperture },
-    { label: 'SHUTTER', value: photo.shutterSpeed },
-    { label: 'ISO', value: photo.iso },
-    { label: 'FOCAL', value: photo.focalLength },
-  ]
+    { label: t('exif.camera'), value: photo.camera },
+    { label: t('exif.lens'), value: photo.lens },
+    { label: t('exif.aperture'), value: photo.aperture },
+    { label: t('exif.shutter'), value: photo.shutterSpeed },
+    { label: t('exif.iso'), value: photo.iso },
+    { label: t('exif.focalLength'), value: photo.focalLength },
+    { label: t('exif.date'), value: photo.date },
+    { label: t('exif.location'), value: photo.location },
+  ].filter((row) => String(row.value).trim().length > 0)
 
   return (
     <section className="space-y-5 border-t border-subtle pt-6">
       <p className="text-xs uppercase tracking-[0.3em] text-muted">
-        Capture Data
+        {t('exif.overline')}
       </p>
 
       <div className="divide-y divide-subtle/80">

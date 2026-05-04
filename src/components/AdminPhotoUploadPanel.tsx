@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import type { PhotoLayout } from '../types'
-import type { AlbumRow, PhotoRow } from '../types/database'
+import { useI18n } from '../hooks/useI18n'
 import { setAlbumCover } from '../services/albumRepository'
 import {
   deletePhoto,
@@ -9,6 +8,8 @@ import {
   updatePhoto,
   uploadPhotoToAlbum,
 } from '../services/photoRepository'
+import type { PhotoLayout } from '../types'
+import type { AlbumRow, PhotoRow } from '../types/database'
 
 interface AdminPhotoUploadPanelProps {
   albumId: string
@@ -30,12 +31,6 @@ interface PhotoEditFormState {
   location: string
   layout: '' | PhotoLayout
 }
-
-const layoutOptions: { value: PhotoLayout; label: string }[] = [
-  { value: 'full', label: '完整幅面' },
-  { value: 'half', label: '半宽' },
-  { value: 'large', label: '强调大图' },
-]
 
 const initialUploadFormState: PhotoUploadFormState = {
   title: '',
@@ -91,25 +86,13 @@ function summarizeText(value: string | null, fallbackText: string) {
     : trimmedValue
 }
 
-function formatExifSummary(photo: PhotoRow) {
-  const parts = [
-    photo.camera,
-    photo.lens,
-    photo.aperture,
-    photo.shutter_speed,
-    photo.iso ? `ISO ${photo.iso}` : null,
-    photo.focal_length,
-  ].filter((value): value is string => Boolean(value))
-
-  return parts.length > 0 ? parts.join(' / ') : '暂无 EXIF 摘要。'
-}
-
 function AdminPhotoUploadPanel({
   albumId,
   albumTitle,
   coverImage,
   onAlbumUpdated,
 }: AdminPhotoUploadPanelProps) {
+  const { t } = useI18n()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [photos, setPhotos] = useState<PhotoRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -126,6 +109,15 @@ function AdminPhotoUploadPanel({
     useState<PhotoEditFormState>(initialEditFormState)
   const [savingPhotoId, setSavingPhotoId] = useState<string | null>(null)
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null)
+
+  const layoutOptions: { value: PhotoLayout; label: string }[] = useMemo(
+    () => [
+      { value: 'full', label: t('photoPanel.layout.full') },
+      { value: 'half', label: t('photoPanel.layout.half') },
+      { value: 'large', label: t('photoPanel.layout.large') },
+    ],
+    [t],
+  )
 
   useEffect(() => {
     let isActive = true
@@ -147,7 +139,11 @@ function AdminPhotoUploadPanel({
           return
         }
 
-        setErrorMessage(getErrorMessage(error, '无法加载相册中的照片。'))
+        const message = getErrorMessage(
+          error,
+          t('common.status.somethingWentWrong'),
+        )
+        setErrorMessage(t('photoPanel.loadError', { message }))
       } finally {
         if (isActive) {
           setLoading(false)
@@ -160,7 +156,7 @@ function AdminPhotoUploadPanel({
     return () => {
       isActive = false
     }
-  }, [albumId])
+  }, [albumId, t])
 
   const handleUploadFieldChange = (
     field: keyof PhotoUploadFormState,
@@ -182,11 +178,24 @@ function AdminPhotoUploadPanel({
     }))
   }
 
+  const formatExifSummary = (photo: PhotoRow) => {
+    const parts = [
+      photo.camera,
+      photo.lens,
+      photo.aperture,
+      photo.shutter_speed,
+      photo.iso ? `ISO ${photo.iso}` : null,
+      photo.focal_length,
+    ].filter((value): value is string => Boolean(value))
+
+    return parts.length > 0 ? parts.join(' / ') : t('photoPanel.noExif')
+  }
+
   const handleUpload = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!selectedFile) {
-      setErrorMessage('请先选择一张图片再上传。')
+      setErrorMessage(t('photoPanel.selectFileFirst'))
       return
     }
 
@@ -203,13 +212,21 @@ function AdminPhotoUploadPanel({
       setPhotos((currentPhotos) => [uploadedPhoto, ...currentPhotos])
       setUploadFormState(initialUploadFormState)
       setSelectedFile(null)
-      setSuccessMessage(`已上传照片《${uploadedPhoto.title ?? '未命名照片'}》。`)
+      setSuccessMessage(
+        t('photoPanel.uploadSuccess', {
+          title: uploadedPhoto.title ?? t('photoPanel.untitled'),
+        }),
+      )
 
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '上传照片失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('photoPanel.uploadError', { message }))
     } finally {
       setIsUploading(false)
     }
@@ -254,9 +271,17 @@ function AdminPhotoUploadPanel({
       )
       setEditingPhotoId(null)
       setEditFormState(initialEditFormState)
-      setSuccessMessage(`已更新照片《${updatedPhoto.title ?? '未命名照片'}》。`)
+      setSuccessMessage(
+        t('photoPanel.updateSuccess', {
+          title: updatedPhoto.title ?? t('photoPanel.untitled'),
+        }),
+      )
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '更新照片信息失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('photoPanel.updateError', { message }))
     } finally {
       setSavingPhotoId(null)
     }
@@ -264,7 +289,7 @@ function AdminPhotoUploadPanel({
 
   const handleSetCover = async (photo: PhotoRow) => {
     if (photo.image_path === coverImage) {
-      setSuccessMessage('这张照片已经是当前封面。')
+      setSuccessMessage(t('photoPanel.alreadyCover'))
       return
     }
 
@@ -275,17 +300,29 @@ function AdminPhotoUploadPanel({
 
       const updatedAlbum = await setAlbumCover(albumId, photo.image_path)
       onAlbumUpdated?.(updatedAlbum)
-      setSuccessMessage(`已将《${photo.title ?? '未命名照片'}》设为相册封面。`)
+      setSuccessMessage(
+        t('photoPanel.setCoverSuccess', {
+          title: photo.title ?? t('photoPanel.untitled'),
+        }),
+      )
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '设置相册封面失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('photoPanel.setCoverError', { message }))
     } finally {
       setCoverPhotoId(null)
     }
   }
 
   const handleDeletePhoto = async (photo: PhotoRow) => {
+    const photoTitle = photo.title ?? photo.image_path
     const confirmed = window.confirm(
-      `确定要从《${albumTitle}》中删除照片《${photo.title ?? photo.image_path}》吗？`,
+      t('photoPanel.deleteConfirm', {
+        albumTitle,
+        photoTitle,
+      }),
     )
 
     if (!confirmed) {
@@ -304,10 +341,12 @@ function AdminPhotoUploadPanel({
           onAlbumUpdated?.(updatedAlbum)
         } catch (error) {
           throw new Error(
-            `照片已删除，但清空相册封面失败：${getErrorMessage(
-              error,
-              '请稍后重试。',
-            )}`,
+            t('photoPanel.coverCleanupFailed', {
+              message: getErrorMessage(
+                error,
+                t('common.status.somethingWentWrong'),
+              ),
+            }),
           )
         }
       }
@@ -315,9 +354,17 @@ function AdminPhotoUploadPanel({
       setPhotos((currentPhotos) =>
         currentPhotos.filter((entry) => entry.id !== photo.id),
       )
-      setSuccessMessage(`已删除照片《${photo.title ?? '未命名照片'}》。`)
+      setSuccessMessage(
+        t('photoPanel.deleteSuccess', {
+          title: photo.title ?? t('photoPanel.untitled'),
+        }),
+      )
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '删除照片失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('photoPanel.deleteError', { message }))
     } finally {
       setDeletingPhotoId(null)
     }
@@ -327,22 +374,22 @@ function AdminPhotoUploadPanel({
     <section className="space-y-6 border-t border-subtle pt-5">
       <div className="space-y-3">
         <p className="text-xs uppercase tracking-[0.28em] text-muted">
-          照片管理
+          {t('photoPanel.overline')}
         </p>
         <p className="text-sm leading-8 text-soft md:text-base">
-          这里负责上传原图、整理照片说明、填写随笔和指定相册封面。公开展示页暂时不会读取这里的内容。
+          {t('photoPanel.description')}
         </p>
         <p className="text-sm leading-8 text-soft md:text-base">
           {coverImage
-            ? `当前封面路径：${coverImage}`
-            : '当前还没有封面，可从下方任意一张照片中选择“设为封面”。'}
+            ? t('photoPanel.currentCoverPath', { path: coverImage })
+            : t('photoPanel.currentCoverEmpty')}
         </p>
       </div>
 
       {(errorMessage || successMessage) && (
         <div className="space-y-2 border-t border-subtle pt-5">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            状态
+            {t('albumsPanel.status')}
           </p>
           {errorMessage ? (
             <p className="text-sm leading-8 text-soft md:text-base">
@@ -364,7 +411,7 @@ function AdminPhotoUploadPanel({
               htmlFor={`photo-file-${albumId}`}
               className="text-xs uppercase tracking-[0.28em] text-muted"
             >
-              选择图片
+              {t('photoPanel.selectFile')}
             </label>
             <input
               ref={fileInputRef}
@@ -378,8 +425,8 @@ function AdminPhotoUploadPanel({
             />
             <p className="text-sm leading-7 text-soft">
               {selectedFile
-                ? `已选择文件：${selectedFile.name}`
-                : '还没有选择文件。'}
+                ? t('photoPanel.selectedFile', { name: selectedFile.name })
+                : t('photoPanel.noSelectedFile')}
             </p>
           </div>
 
@@ -388,7 +435,7 @@ function AdminPhotoUploadPanel({
               htmlFor={`photo-title-${albumId}`}
               className="text-xs uppercase tracking-[0.28em] text-muted"
             >
-              照片标题
+              {t('photoPanel.photoTitle')}
             </label>
             <input
               id={`photo-title-${albumId}`}
@@ -398,7 +445,7 @@ function AdminPhotoUploadPanel({
                 handleUploadFieldChange('title', event.target.value)
               }
               className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-              placeholder="可选标题"
+              placeholder={t('photoPanel.photoTitlePlaceholder')}
             />
           </div>
 
@@ -407,7 +454,7 @@ function AdminPhotoUploadPanel({
               htmlFor={`photo-description-${albumId}`}
               className="text-xs uppercase tracking-[0.28em] text-muted"
             >
-              简短说明
+              {t('photoPanel.shortDescription')}
             </label>
             <input
               id={`photo-description-${albumId}`}
@@ -417,7 +464,7 @@ function AdminPhotoUploadPanel({
                 handleUploadFieldChange('description', event.target.value)
               }
               className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-              placeholder="一句简单描述即可"
+              placeholder={t('photoPanel.shortDescriptionPlaceholder')}
             />
           </div>
         </div>
@@ -428,7 +475,7 @@ function AdminPhotoUploadPanel({
             disabled={isUploading}
             className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
           >
-            {isUploading ? '上传中...' : '上传照片'}
+            {isUploading ? t('photoPanel.uploading') : t('photoPanel.upload')}
           </button>
         </div>
       </form>
@@ -436,21 +483,21 @@ function AdminPhotoUploadPanel({
       <div className="space-y-4 border-t border-subtle pt-6">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            已上传照片
+            {t('photoPanel.listOverline')}
           </p>
           <p className="text-sm leading-8 text-soft md:text-base">
-            可以继续补写照片说明、随笔、小记、拍摄故事，也可以直接指定相册封面。
+            {t('photoPanel.listDescription')}
           </p>
         </div>
 
         {loading ? (
           <p className="text-sm leading-8 text-soft md:text-base">
-            正在加载照片列表...
+            {t('photoPanel.loading')}
           </p>
         ) : errorMessage && photos.length === 0 ? (
           <div className="space-y-3">
             <p className="font-serif text-2xl leading-tight text-ink">
-              照片暂时无法加载
+              {t('photoPanel.loadErrorTitle')}
             </p>
             <p className="text-sm leading-8 text-soft md:text-base">
               {errorMessage}
@@ -459,10 +506,10 @@ function AdminPhotoUploadPanel({
         ) : photos.length === 0 ? (
           <div className="space-y-3">
             <p className="font-serif text-2xl leading-tight text-ink">
-              还没有照片
+              {t('photoPanel.emptyTitle')}
             </p>
             <p className="text-sm leading-8 text-soft md:text-base">
-              先上传第一张照片，再继续补写故事和设置封面。
+              {t('photoPanel.emptyDescription')}
             </p>
           </div>
         ) : (
@@ -478,11 +525,11 @@ function AdminPhotoUploadPanel({
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className="font-serif text-2xl leading-tight text-ink">
-                        {photo.title ?? '未命名照片'}
+                        {photo.title ?? t('photoPanel.untitled')}
                       </h3>
                       {isCurrentCover ? (
                         <span className="text-xs uppercase tracking-[0.2em] text-muted">
-                          当前封面
+                          {t('photoPanel.currentCover')}
                         </span>
                       ) : null}
                     </div>
@@ -492,9 +539,24 @@ function AdminPhotoUploadPanel({
                   </div>
 
                   <div className="space-y-2 text-sm leading-7 text-soft">
-                    <p>说明：{summarizeText(photo.description, '暂时还没有说明。')}</p>
-                    <p>随笔：{summarizeText(photo.note, '暂时还没有随笔或拍摄故事。')}</p>
-                    <p>EXIF：{formatExifSummary(photo)}</p>
+                    <p>
+                      {t('photoPanel.descriptionSummary', {
+                        value: summarizeText(
+                          photo.description,
+                          t('photoPanel.noDescription'),
+                        ),
+                      })}
+                    </p>
+                    <p>
+                      {t('photoPanel.noteSummary', {
+                        value: summarizeText(photo.note, t('photoPanel.noNote')),
+                      })}
+                    </p>
+                    <p>
+                      {t('photoPanel.exifSummary', {
+                        value: formatExifSummary(photo),
+                      })}
+                    </p>
                   </div>
 
                   <div className="flex flex-wrap gap-3">
@@ -503,7 +565,7 @@ function AdminPhotoUploadPanel({
                       onClick={() => handleStartEditPhoto(photo)}
                       className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent"
                     >
-                      编辑信息
+                      {t('photoPanel.editButton')}
                     </button>
                     <button
                       type="button"
@@ -511,7 +573,9 @@ function AdminPhotoUploadPanel({
                       onClick={() => void handleSetCover(photo)}
                       className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
                     >
-                      {coverPhotoId === photo.id ? '设置中...' : '设为封面'}
+                      {coverPhotoId === photo.id
+                        ? t('photoPanel.settingCover')
+                        : t('photoPanel.setCoverButton')}
                     </button>
                     <button
                       type="button"
@@ -519,7 +583,9 @@ function AdminPhotoUploadPanel({
                       onClick={() => void handleDeletePhoto(photo)}
                       className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
                     >
-                      {deletingPhotoId === photo.id ? '删除中...' : '删除照片'}
+                      {deletingPhotoId === photo.id
+                        ? t('photoPanel.deleting')
+                        : t('photoPanel.deleteButton')}
                     </button>
                   </div>
 
@@ -530,10 +596,10 @@ function AdminPhotoUploadPanel({
                     >
                       <div className="space-y-3">
                         <p className="text-xs uppercase tracking-[0.28em] text-muted">
-                          编辑照片
+                          {t('photoPanel.editOverline')}
                         </p>
                         <p className="text-sm leading-8 text-soft md:text-base">
-                          这里可以补充说明、随笔、小记和拍摄故事，不会改动已写入的 EXIF 参数。
+                          {t('photoPanel.editDescription')}
                         </p>
                       </div>
 
@@ -543,7 +609,7 @@ function AdminPhotoUploadPanel({
                             htmlFor={`edit-photo-title-${photo.id}`}
                             className="text-xs uppercase tracking-[0.28em] text-muted"
                           >
-                            照片标题
+                            {t('photoPanel.photoTitle')}
                           </label>
                           <input
                             id={`edit-photo-title-${photo.id}`}
@@ -553,7 +619,7 @@ function AdminPhotoUploadPanel({
                               handleEditFieldChange('title', event.target.value)
                             }
                             className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-                            placeholder="请输入照片标题"
+                            placeholder={t('albumsPanel.form.titlePlaceholder')}
                           />
                         </div>
 
@@ -562,7 +628,7 @@ function AdminPhotoUploadPanel({
                             htmlFor={`edit-photo-description-${photo.id}`}
                             className="text-xs uppercase tracking-[0.28em] text-muted"
                           >
-                            照片说明
+                            {t('common.labels.description')}
                           </label>
                           <textarea
                             id={`edit-photo-description-${photo.id}`}
@@ -574,7 +640,7 @@ function AdminPhotoUploadPanel({
                               )
                             }
                             className="min-h-28 w-full border border-subtle bg-canvas px-4 py-3 text-sm leading-8 text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-                            placeholder="补充一段简短说明"
+                            placeholder={t('albumsPanel.form.descriptionPlaceholder')}
                           />
                         </div>
 
@@ -583,7 +649,7 @@ function AdminPhotoUploadPanel({
                             htmlFor={`edit-photo-note-${photo.id}`}
                             className="text-xs uppercase tracking-[0.28em] text-muted"
                           >
-                            随笔 / 小记 / 拍摄故事
+                            {t('photoPanel.noteLabel')}
                           </label>
                           <textarea
                             id={`edit-photo-note-${photo.id}`}
@@ -592,7 +658,7 @@ function AdminPhotoUploadPanel({
                               handleEditFieldChange('note', event.target.value)
                             }
                             className="min-h-40 w-full border border-subtle bg-canvas px-4 py-3 text-sm leading-8 text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-                            placeholder="写下这张照片背后的情绪、现场、片刻或故事"
+                            placeholder={t('photoPanel.notePlaceholder')}
                           />
                         </div>
 
@@ -601,7 +667,7 @@ function AdminPhotoUploadPanel({
                             htmlFor={`edit-photo-date-${photo.id}`}
                             className="text-xs uppercase tracking-[0.28em] text-muted"
                           >
-                            日期
+                            {t('common.labels.date')}
                           </label>
                           <input
                             id={`edit-photo-date-${photo.id}`}
@@ -611,7 +677,7 @@ function AdminPhotoUploadPanel({
                               handleEditFieldChange('date', event.target.value)
                             }
                             className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-                            placeholder="例如 2026-05-04"
+                            placeholder={t('albumsPanel.form.datePlaceholder')}
                           />
                         </div>
 
@@ -620,7 +686,7 @@ function AdminPhotoUploadPanel({
                             htmlFor={`edit-photo-location-${photo.id}`}
                             className="text-xs uppercase tracking-[0.28em] text-muted"
                           >
-                            地点
+                            {t('common.labels.location')}
                           </label>
                           <input
                             id={`edit-photo-location-${photo.id}`}
@@ -633,7 +699,7 @@ function AdminPhotoUploadPanel({
                               )
                             }
                             className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-                            placeholder="例如 鼓浪屿 / 东京 / 楼下转角"
+                            placeholder={t('photoPanel.locationPlaceholder')}
                           />
                         </div>
 
@@ -642,7 +708,7 @@ function AdminPhotoUploadPanel({
                             htmlFor={`edit-photo-layout-${photo.id}`}
                             className="text-xs uppercase tracking-[0.28em] text-muted"
                           >
-                            展示布局
+                            {t('photoPanel.layoutLabel')}
                           </label>
                           <select
                             id={`edit-photo-layout-${photo.id}`}
@@ -655,7 +721,9 @@ function AdminPhotoUploadPanel({
                             }
                             className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-soft"
                           >
-                            <option value="">暂不设置</option>
+                            <option value="">
+                              {t('photoPanel.layoutPlaceholder')}
+                            </option>
                             {layoutOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
@@ -671,14 +739,16 @@ function AdminPhotoUploadPanel({
                           disabled={savingPhotoId === photo.id}
                           className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
                         >
-                          {savingPhotoId === photo.id ? '保存中...' : '保存修改'}
+                          {savingPhotoId === photo.id
+                            ? t('photoPanel.saving')
+                            : t('photoPanel.save')}
                         </button>
                         <button
                           type="button"
                           onClick={handleCancelEditPhoto}
                           className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent"
                         >
-                          取消
+                          {t('photoPanel.cancel')}
                         </button>
                       </div>
                     </form>

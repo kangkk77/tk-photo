@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import BackButton from '../components/BackButton'
 import ExifPanel from '../components/ExifPanel'
 import PhotoDetail from '../components/PhotoDetail'
+import { useI18n } from '../hooks/useI18n'
 import type { Album, Photo } from '../types'
 import {
   getAdjacentPhotos,
@@ -23,6 +24,7 @@ function PhotoDetailPage() {
   const { albumId, photoId } = useParams()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const { t } = useI18n()
   const [pageState, setPageState] = useState<PhotoPageState>({
     album: null,
     photo: null,
@@ -93,7 +95,7 @@ function PhotoDetailPage() {
         }
 
         setErrorMessage(
-          error instanceof Error ? error.message : 'Unable to load photo.',
+          error instanceof Error ? error.message : t('common.status.somethingWentWrong'),
         )
       } finally {
         if (isActive) {
@@ -107,7 +109,7 @@ function PhotoDetailPage() {
     return () => {
       isActive = false
     }
-  }, [albumId, photoId])
+  }, [albumId, photoId, t])
 
   useEffect(() => {
     if (!album || !photo) {
@@ -149,13 +151,13 @@ function PhotoDetailPage() {
 
         <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            Loading Work
+            {t('photoDetail.loadingLabel')}
           </p>
           <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
-            Preparing this photograph for viewing.
+            {t('photoDetail.loadingTitle')}
           </h1>
           <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-            The work details and adjacent navigation are being loaded.
+            {t('photoDetail.loadingDescription')}
           </p>
         </div>
       </section>
@@ -169,10 +171,10 @@ function PhotoDetailPage() {
 
         <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            Load Error
+            {t('photoDetail.loadErrorLabel')}
           </p>
           <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
-            This photograph could not be loaded.
+            {t('photoDetail.loadErrorTitle')}
           </h1>
           <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
             {errorMessage}
@@ -181,7 +183,7 @@ function PhotoDetailPage() {
             to="/albums"
             className="inline-flex text-sm tracking-[0.08em] text-soft transition-colors hover:text-accent"
           >
-            Return to all albums
+            {t('photoDetail.returnToAlbums')}
           </Link>
         </div>
       </section>
@@ -195,25 +197,24 @@ function PhotoDetailPage() {
 
         <div className="max-w-3xl space-y-5 pt-2 md:pt-6">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            Work Not Found
+            {t('photoDetail.notFoundLabel')}
           </p>
           <h1 className="font-serif text-4xl leading-tight text-ink md:text-6xl">
-            This photograph is not available in the current exhibition path.
+            {t('photoDetail.notFoundTitle')}
           </h1>
           <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-            The album or photo id may be incorrect, or this work is not part of
-            the static collection yet.
+            {t('photoDetail.notFoundDescription')}
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm tracking-[0.08em] text-soft">
             <Link to="/albums" className="transition-colors hover:text-accent">
-              Return to all albums
+              {t('photoDetail.returnToAlbums')}
             </Link>
             {album ? (
               <Link
                 to={`/albums/${album.id}`}
                 className="transition-colors hover:text-accent"
               >
-                Return to current album
+                {t('photoDetail.returnToCurrentAlbum')}
               </Link>
             ) : null}
           </div>
@@ -264,7 +265,7 @@ function PhotoDetailPage() {
         >
           <div className="space-y-5">
             <p className="text-xs uppercase tracking-[0.3em] text-muted">
-              Single Work
+              {t('photoDetail.singleWork')}
             </p>
             <div className="space-y-3">
               <h1 className="font-serif text-4xl leading-tight text-ink md:text-5xl">

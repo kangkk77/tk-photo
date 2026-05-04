@@ -1,24 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import type { AlbumTheme } from '../types'
-import type { AlbumRow, DatabaseAlbumVisibility } from '../types/database'
+import { useI18n } from '../hooks/useI18n'
 import {
   createAlbum,
   deleteAlbum,
   listMyAlbums,
   updateAlbum,
 } from '../services/albumRepository'
+import type { AlbumTheme } from '../types'
+import type { AlbumRow, DatabaseAlbumVisibility } from '../types/database'
 import AdminPhotoUploadPanel from './AdminPhotoUploadPanel'
-
-const themeOptions: { value: AlbumTheme; label: string }[] = [
-  { value: 'seascape', label: '海景' },
-  { value: 'sunset', label: '夕照' },
-  { value: 'city', label: '城市' },
-  { value: 'portrait', label: '人像' },
-  { value: 'travel', label: '旅行' },
-  { value: 'daily', label: '日常' },
-  { value: 'other', label: '其他' },
-]
 
 interface AlbumFormState {
   title: string
@@ -76,142 +67,8 @@ function getErrorMessage(error: unknown, fallbackMessage: string) {
   return fallbackMessage
 }
 
-function AlbumFormFields({
-  formState,
-  idPrefix,
-  onFieldChange,
-}: AlbumFormFieldsProps) {
-  return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <div className="space-y-3 md:col-span-2">
-        <label
-          htmlFor={`${idPrefix}-title`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          相册标题
-        </label>
-        <input
-          id={`${idPrefix}-title`}
-          type="text"
-          value={formState.title}
-          onChange={(event) => onFieldChange('title', event.target.value)}
-          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-          placeholder="请输入相册标题"
-          required
-        />
-      </div>
-
-      <div className="space-y-3 md:col-span-2">
-        <label
-          htmlFor={`${idPrefix}-subtitle`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          副标题
-        </label>
-        <input
-          id={`${idPrefix}-subtitle`}
-          type="text"
-          value={formState.subtitle}
-          onChange={(event) => onFieldChange('subtitle', event.target.value)}
-          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-          placeholder="可选副标题"
-        />
-      </div>
-
-      <div className="space-y-3 md:col-span-2">
-        <label
-          htmlFor={`${idPrefix}-description`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          相册说明
-        </label>
-        <textarea
-          id={`${idPrefix}-description`}
-          value={formState.description}
-          onChange={(event) => onFieldChange('description', event.target.value)}
-          className="min-h-32 w-full border border-subtle bg-canvas px-4 py-3 text-sm leading-8 text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-          placeholder="为这组作品写一段简短说明"
-        />
-      </div>
-
-      <div className="space-y-3">
-        <label
-          htmlFor={`${idPrefix}-theme`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          主题
-        </label>
-        <select
-          id={`${idPrefix}-theme`}
-          value={formState.theme}
-          onChange={(event) => onFieldChange('theme', event.target.value)}
-          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-soft"
-        >
-          <option value="">暂不设置</option>
-          {themeOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="space-y-3">
-        <label
-          htmlFor={`${idPrefix}-visibility`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          可见性
-        </label>
-        <select
-          id={`${idPrefix}-visibility`}
-          value={formState.visibility}
-          onChange={(event) => onFieldChange('visibility', event.target.value)}
-          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-soft"
-        >
-          <option value="public">公开</option>
-          <option value="private">私密</option>
-        </select>
-      </div>
-
-      <div className="space-y-3">
-        <label
-          htmlFor={`${idPrefix}-date`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          日期
-        </label>
-        <input
-          id={`${idPrefix}-date`}
-          type="text"
-          value={formState.date}
-          onChange={(event) => onFieldChange('date', event.target.value)}
-          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-          placeholder="例如 2026-05-04"
-        />
-      </div>
-
-      <div className="space-y-3">
-        <label
-          htmlFor={`${idPrefix}-location`}
-          className="text-xs uppercase tracking-[0.28em] text-muted"
-        >
-          地点
-        </label>
-        <input
-          id={`${idPrefix}-location`}
-          type="text"
-          value={formState.location}
-          onChange={(event) => onFieldChange('location', event.target.value)}
-          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
-          placeholder="例如 厦门 / 香港 / 家附近"
-        />
-      </div>
-    </div>
-  )
-}
-
 function AdminAlbumsPanel() {
+  const { t } = useI18n()
   const [albums, setAlbums] = useState<AlbumRow[]>([])
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -223,6 +80,30 @@ function AdminAlbumsPanel() {
   const [editFormState, setEditFormState] =
     useState<AlbumFormState>(initialFormState)
   const [savingAlbumId, setSavingAlbumId] = useState<string | null>(null)
+
+  const themeOptions: { value: AlbumTheme; label: string }[] = useMemo(
+    () => [
+      { value: 'seascape', label: t('albumsPanel.theme.seascape') },
+      { value: 'sunset', label: t('albumsPanel.theme.sunset') },
+      { value: 'city', label: t('albumsPanel.theme.city') },
+      { value: 'portrait', label: t('albumsPanel.theme.portrait') },
+      { value: 'travel', label: t('albumsPanel.theme.travel') },
+      { value: 'daily', label: t('albumsPanel.theme.daily') },
+      { value: 'other', label: t('albumsPanel.theme.other') },
+    ],
+    [t],
+  )
+
+  const visibilityOptions: {
+    value: DatabaseAlbumVisibility
+    label: string
+  }[] = useMemo(
+    () => [
+      { value: 'public', label: t('albumsPanel.visibility.public') },
+      { value: 'private', label: t('albumsPanel.visibility.private') },
+    ],
+    [t],
+  )
 
   useEffect(() => {
     let isActive = true
@@ -244,7 +125,11 @@ function AdminAlbumsPanel() {
           return
         }
 
-        setErrorMessage(getErrorMessage(error, '无法加载你的相册列表。'))
+        const message = getErrorMessage(
+          error,
+          t('common.status.somethingWentWrong'),
+        )
+        setErrorMessage(t('albumsPanel.loadError', { message }))
       } finally {
         if (isActive) {
           setLoading(false)
@@ -257,7 +142,7 @@ function AdminAlbumsPanel() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [t])
 
   const handleCreateFieldChange = (
     field: keyof AlbumFormState,
@@ -307,9 +192,15 @@ function AdminAlbumsPanel() {
 
       setAlbums((currentAlbums) => [createdAlbum, ...currentAlbums])
       setFormState(initialFormState)
-      setSuccessMessage(`已创建相册《${createdAlbum.title}》。`)
+      setSuccessMessage(
+        t('albumsPanel.createSuccess', { title: createdAlbum.title }),
+      )
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '创建相册失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('albumsPanel.createError', { message }))
     } finally {
       setIsCreating(false)
     }
@@ -351,9 +242,15 @@ function AdminAlbumsPanel() {
       handleAlbumUpdated(updatedAlbum)
       setEditingAlbumId(null)
       setEditFormState(initialFormState)
-      setSuccessMessage(`已更新相册《${updatedAlbum.title}》。`)
+      setSuccessMessage(
+        t('albumsPanel.updateSuccess', { title: updatedAlbum.title }),
+      )
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '更新相册失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('albumsPanel.updateError', { message }))
     } finally {
       setSavingAlbumId(null)
     }
@@ -361,7 +258,7 @@ function AdminAlbumsPanel() {
 
   const handleDeleteAlbum = async (album: AlbumRow) => {
     const confirmed = window.confirm(
-      `确定要删除相册《${album.title}》吗？这个操作无法撤销。`,
+      t('albumsPanel.deleteConfirm', { title: album.title }),
     )
 
     if (!confirmed) {
@@ -376,31 +273,170 @@ function AdminAlbumsPanel() {
       setAlbums((currentAlbums) =>
         currentAlbums.filter((entry) => entry.id !== album.id),
       )
-      setSuccessMessage(`已删除相册《${album.title}》。`)
+      setSuccessMessage(t('albumsPanel.deleteSuccess', { title: album.title }))
     } catch (error) {
-      setErrorMessage(getErrorMessage(error, '删除相册失败。'))
+      const message = getErrorMessage(
+        error,
+        t('common.status.somethingWentWrong'),
+      )
+      setErrorMessage(t('albumsPanel.deleteError', { message }))
     } finally {
       setDeletingAlbumId(null)
     }
   }
+
+  const renderAlbumFormFields = ({
+    formState: currentFormState,
+    idPrefix,
+    onFieldChange,
+  }: AlbumFormFieldsProps) => (
+    <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-3 md:col-span-2">
+        <label
+          htmlFor={`${idPrefix}-title`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.title')}
+        </label>
+        <input
+          id={`${idPrefix}-title`}
+          type="text"
+          value={currentFormState.title}
+          onChange={(event) => onFieldChange('title', event.target.value)}
+          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
+          placeholder={t('albumsPanel.form.titlePlaceholder')}
+          required
+        />
+      </div>
+
+      <div className="space-y-3 md:col-span-2">
+        <label
+          htmlFor={`${idPrefix}-subtitle`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.subtitle')}
+        </label>
+        <input
+          id={`${idPrefix}-subtitle`}
+          type="text"
+          value={currentFormState.subtitle}
+          onChange={(event) => onFieldChange('subtitle', event.target.value)}
+          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
+          placeholder={t('albumsPanel.form.subtitlePlaceholder')}
+        />
+      </div>
+
+      <div className="space-y-3 md:col-span-2">
+        <label
+          htmlFor={`${idPrefix}-description`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.description')}
+        </label>
+        <textarea
+          id={`${idPrefix}-description`}
+          value={currentFormState.description}
+          onChange={(event) => onFieldChange('description', event.target.value)}
+          className="min-h-32 w-full border border-subtle bg-canvas px-4 py-3 text-sm leading-8 text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
+          placeholder={t('albumsPanel.form.descriptionPlaceholder')}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <label
+          htmlFor={`${idPrefix}-theme`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.theme')}
+        </label>
+        <select
+          id={`${idPrefix}-theme`}
+          value={currentFormState.theme}
+          onChange={(event) => onFieldChange('theme', event.target.value)}
+          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-soft"
+        >
+          <option value="">{t('albumsPanel.form.themePlaceholder')}</option>
+          {themeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-3">
+        <label
+          htmlFor={`${idPrefix}-visibility`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.visibility')}
+        </label>
+        <select
+          id={`${idPrefix}-visibility`}
+          value={currentFormState.visibility}
+          onChange={(event) => onFieldChange('visibility', event.target.value)}
+          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors focus:border-soft"
+        >
+          {visibilityOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-3">
+        <label
+          htmlFor={`${idPrefix}-date`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.date')}
+        </label>
+        <input
+          id={`${idPrefix}-date`}
+          type="text"
+          value={currentFormState.date}
+          onChange={(event) => onFieldChange('date', event.target.value)}
+          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
+          placeholder={t('albumsPanel.form.datePlaceholder')}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <label
+          htmlFor={`${idPrefix}-location`}
+          className="text-xs uppercase tracking-[0.28em] text-muted"
+        >
+          {t('albumsPanel.form.location')}
+        </label>
+        <input
+          id={`${idPrefix}-location`}
+          type="text"
+          value={currentFormState.location}
+          onChange={(event) => onFieldChange('location', event.target.value)}
+          className="w-full border border-subtle bg-canvas px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-muted focus:border-soft"
+          placeholder={t('albumsPanel.form.locationPlaceholder')}
+        />
+      </div>
+    </div>
+  )
 
   return (
     <div className="grid gap-10 border-t border-subtle pt-8 md:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] md:gap-x-14 md:pt-10">
       <section className="space-y-8">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            新建相册
+            {t('albumsPanel.createOverline')}
           </p>
           <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-            在不影响公开展览页的前提下，先把作品集的结构、说明和可见性整理好。
-            封面图片可以在下方照片管理区域里直接指定。
+            {t('albumsPanel.createDescription')}
           </p>
         </div>
 
         {(errorMessage || successMessage) && (
           <div className="space-y-2 border-t border-subtle pt-5">
             <p className="text-xs uppercase tracking-[0.28em] text-muted">
-              状态
+              {t('albumsPanel.status')}
             </p>
             {errorMessage ? (
               <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
@@ -416,11 +452,11 @@ function AdminAlbumsPanel() {
         )}
 
         <form className="space-y-7" onSubmit={handleCreateAlbum}>
-          <AlbumFormFields
-            formState={formState}
-            idPrefix="create-album"
-            onFieldChange={handleCreateFieldChange}
-          />
+          {renderAlbumFormFields({
+            formState,
+            idPrefix: 'create-album',
+            onFieldChange: handleCreateFieldChange,
+          })}
 
           <div className="border-t border-subtle pt-6">
             <button
@@ -428,7 +464,7 @@ function AdminAlbumsPanel() {
               disabled={isCreating}
               className="inline-flex min-w-36 items-center justify-center border border-subtle px-5 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
             >
-              {isCreating ? '创建中...' : '创建相册'}
+              {isCreating ? t('albumsPanel.creating') : t('albumsPanel.create')}
             </button>
           </div>
         </form>
@@ -437,21 +473,21 @@ function AdminAlbumsPanel() {
       <aside className="space-y-6 border-t border-subtle/80 pt-5 md:border-l md:border-t-0 md:pl-8 md:pt-1">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.28em] text-muted">
-            我的相册
+            {t('albumsPanel.listOverline')}
           </p>
           <p className="text-sm leading-8 text-soft md:text-base">
-            当前账号创建的相册都在这里，可以继续编辑、整理照片、指定封面。
+            {t('albumsPanel.listDescription')}
           </p>
         </div>
 
         {loading ? (
           <p className="text-sm leading-8 text-soft md:text-base">
-            正在加载你的相册...
+            {t('albumsPanel.loading')}
           </p>
         ) : errorMessage && albums.length === 0 ? (
           <div className="space-y-3">
             <p className="font-serif text-2xl leading-tight text-ink">
-              相册暂时无法加载
+              {t('albumsPanel.loadErrorTitle')}
             </p>
             <p className="text-sm leading-8 text-soft md:text-base">
               {errorMessage}
@@ -460,105 +496,125 @@ function AdminAlbumsPanel() {
         ) : albums.length === 0 ? (
           <div className="space-y-3">
             <p className="font-serif text-2xl leading-tight text-ink">
-              还没有相册
+              {t('albumsPanel.emptyTitle')}
             </p>
             <p className="text-sm leading-8 text-soft md:text-base">
-              先从左侧创建第一本作品集，再继续上传照片和设置封面。
+              {t('albumsPanel.emptyDescription')}
             </p>
           </div>
         ) : (
           <div className="space-y-5">
-            {albums.map((album) => (
-              <article
-                key={album.id}
-                className="space-y-4 border-t border-subtle pt-5 first:border-t-0 first:pt-0"
-              >
-                <div className="space-y-2">
-                  <h2 className="font-serif text-2xl leading-tight text-ink">
-                    {album.title}
-                  </h2>
-                  <p className="text-sm tracking-[0.08em] text-muted">
-                    {(album.subtitle ?? '暂无副标题') + ' / ' + (album.visibility === 'public' ? '公开' : '私密')}
-                  </p>
-                </div>
+            {albums.map((album) => {
+              const visibilityLabel =
+                album.visibility === 'public'
+                  ? t('albumsPanel.visibility.public')
+                  : t('albumsPanel.visibility.private')
 
-                <div className="space-y-2 text-sm leading-7 text-soft">
-                  <p>{album.description ?? '暂时还没有相册说明。'}</p>
-                  <p>日期：{album.date ?? '未填写'}</p>
-                  <p>地点：{album.location ?? '未填写'}</p>
-                  <p>
-                    封面：
-                    {album.cover_image
-                      ? album.cover_image
-                      : '尚未设置，可从下方照片中选择一张设为封面。'}
-                  </p>
-                </div>
+              return (
+                <article
+                  key={album.id}
+                  className="space-y-4 border-t border-subtle pt-5 first:border-t-0 first:pt-0"
+                >
+                  <div className="space-y-2">
+                    <h2 className="font-serif text-2xl leading-tight text-ink">
+                      {album.title}
+                    </h2>
+                    <p className="text-sm tracking-[0.08em] text-muted">
+                      {(album.subtitle ?? t('albumsPanel.noSubtitle')) +
+                        ' / ' +
+                        visibilityLabel}
+                    </p>
+                  </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleStartEditAlbum(album)}
-                    className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent"
-                  >
-                    编辑相册
-                  </button>
-                  <button
-                    type="button"
-                    disabled={deletingAlbumId === album.id}
-                    onClick={() => void handleDeleteAlbum(album)}
-                    className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
-                  >
-                    {deletingAlbumId === album.id ? '删除中...' : '删除相册'}
-                  </button>
-                </div>
+                  <div className="space-y-2 text-sm leading-7 text-soft">
+                    <p>{album.description ?? t('albumsPanel.noDescription')}</p>
+                    <p>
+                      {t('albumsPanel.dateLabel', {
+                        value: album.date ?? t('albumsPanel.emptyValue'),
+                      })}
+                    </p>
+                    <p>
+                      {t('albumsPanel.locationLabel', {
+                        value: album.location ?? t('albumsPanel.emptyValue'),
+                      })}
+                    </p>
+                    <p>
+                      {t('albumsPanel.coverLabel', {
+                        value: album.cover_image ?? t('albumsPanel.coverUnset'),
+                      })}
+                    </p>
+                  </div>
 
-                {editingAlbumId === album.id ? (
-                  <form
-                    className="space-y-6 border-t border-subtle pt-5"
-                    onSubmit={(event) => void handleSaveAlbum(event, album)}
-                  >
-                    <div className="space-y-3">
-                      <p className="text-xs uppercase tracking-[0.28em] text-muted">
-                        编辑相册
-                      </p>
-                      <p className="text-sm leading-8 text-soft md:text-base">
-                        调整相册标题、说明、时间与可见性。取消后会恢复到当前保存状态。
-                      </p>
-                    </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleStartEditAlbum(album)}
+                      className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent"
+                    >
+                      {t('albumsPanel.editButton')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={deletingAlbumId === album.id}
+                      onClick={() => void handleDeleteAlbum(album)}
+                      className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-2 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
+                    >
+                      {deletingAlbumId === album.id
+                        ? t('albumsPanel.deleting')
+                        : t('albumsPanel.deleteButton')}
+                    </button>
+                  </div>
 
-                    <AlbumFormFields
-                      formState={editFormState}
-                      idPrefix={`edit-album-${album.id}`}
-                      onFieldChange={handleEditFieldChange}
-                    />
+                  {editingAlbumId === album.id ? (
+                    <form
+                      className="space-y-6 border-t border-subtle pt-5"
+                      onSubmit={(event) => void handleSaveAlbum(event, album)}
+                    >
+                      <div className="space-y-3">
+                        <p className="text-xs uppercase tracking-[0.28em] text-muted">
+                          {t('albumsPanel.editOverline')}
+                        </p>
+                        <p className="text-sm leading-8 text-soft md:text-base">
+                          {t('albumsPanel.editDescription')}
+                        </p>
+                      </div>
 
-                    <div className="flex flex-wrap gap-3 border-t border-subtle pt-6">
-                      <button
-                        type="submit"
-                        disabled={savingAlbumId === album.id}
-                        className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
-                      >
-                        {savingAlbumId === album.id ? '保存中...' : '保存修改'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEditAlbum}
-                        className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent"
-                      >
-                        取消
-                      </button>
-                    </div>
-                  </form>
-                ) : null}
+                      {renderAlbumFormFields({
+                        formState: editFormState,
+                        idPrefix: `edit-album-${album.id}`,
+                        onFieldChange: handleEditFieldChange,
+                      })}
 
-                <AdminPhotoUploadPanel
-                  albumId={album.id}
-                  albumTitle={album.title}
-                  coverImage={album.cover_image}
-                  onAlbumUpdated={handleAlbumUpdated}
-                />
-              </article>
-            ))}
+                      <div className="flex flex-wrap gap-3 border-t border-subtle pt-6">
+                        <button
+                          type="submit"
+                          disabled={savingAlbumId === album.id}
+                          className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent disabled:cursor-not-allowed disabled:text-muted"
+                        >
+                          {savingAlbumId === album.id
+                            ? t('albumsPanel.saving')
+                            : t('albumsPanel.save')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEditAlbum}
+                          className="inline-flex min-w-28 items-center justify-center border border-subtle px-4 py-3 text-sm tracking-[0.08em] text-ink transition-colors hover:border-soft hover:text-accent"
+                        >
+                          {t('albumsPanel.cancel')}
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
+
+                  <AdminPhotoUploadPanel
+                    albumId={album.id}
+                    albumTitle={album.title}
+                    coverImage={album.cover_image}
+                    onAlbumUpdated={handleAlbumUpdated}
+                  />
+                </article>
+              )
+            })}
           </div>
         )}
       </aside>

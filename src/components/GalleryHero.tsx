@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
+import { useI18n } from '../hooks/useI18n'
 import { getImagePath } from '../utils/paths'
 
 type GalleryHeroProps = {
@@ -25,6 +26,7 @@ function GalleryHero({
 }: GalleryHeroProps) {
   const [imageMissing, setImageMissing] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+  const { t } = useI18n()
   const heroImage = backgroundImage ? getImagePath(backgroundImage) : ''
   const showHeroImage = Boolean(heroImage) && !imageMissing
 
@@ -77,7 +79,7 @@ function GalleryHero({
           className="max-w-3xl pt-8 md:pt-12"
         >
           <p className="mb-5 text-[11px] uppercase tracking-[0.34em] text-white/72 md:mb-7">
-            Online Photography Exhibition
+            {t('galleryHero.overline')}
           </p>
           <h1 className="max-w-4xl font-serif text-5xl leading-[1.02] tracking-[-0.035em] text-white sm:text-6xl md:text-7xl lg:text-[5.2rem]">
             {title}
@@ -102,7 +104,7 @@ function GalleryHero({
         >
           <div className="space-y-2">
             <p className="text-[11px] uppercase tracking-[0.3em] text-white/58">
-              Featured Sequence
+              {t('galleryHero.featuredSequence')}
             </p>
             <h2 className="font-serif text-2xl leading-tight text-white md:text-[2.5rem]">
               {featuredAlbumTitle}
