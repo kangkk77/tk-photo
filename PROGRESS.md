@@ -18,7 +18,7 @@ Branch:
 - `v2-upload`
 
 Current focus:
-- V2 Phase 4A: admin album management
+- V2 Phase 5 preparation: public exhibition page data migration
 
 ### V2 Phase 1: Data Access Layer Abstraction
 
@@ -122,6 +122,36 @@ Completed:
 - Kept `cover_image` optional for now
 - Did not add photo upload yet
 - Did not change public exhibition page data sources
+
+Verification:
+- `npm run build` passed
+
+### V2 Phase 4B: Admin Photo Upload, EXIF Extraction, And Storage Integration
+
+Completed:
+- Reused the existing `exifr` dependency for browser-side EXIF parsing
+- Added `src/utils/exif.ts`
+- Implemented `parseImageExif(file)` with graceful fallback when EXIF parsing fails
+- Added `src/services/photoRepository.ts`
+- Implemented Supabase photo repository functions:
+  - `listPhotosByAlbum(albumId)`
+  - `uploadPhotoToAlbum(albumId, file, metadata)`
+  - `deletePhoto(photoId)`
+- Added `supabase/storage-policies.sql`
+- Documented public bucket and path expectations for the V2 upload flow
+- Kept Storage uploads in the `photos` bucket with this path structure:
+  - `userId/albumId/photoId-original.ext`
+- Kept `photos.image_path` as the Storage path only, without storing a full public URL
+- Updated `src/types/database.ts` exports for Supabase photo insert and update types
+- Added `src/components/AdminPhotoUploadPanel.tsx`
+- Updated `AdminAlbumsPanel` so each owned album now includes:
+  - single-photo upload form
+  - filename preview
+  - loading, error, and empty states
+  - uploaded photo list with EXIF metadata
+  - delete action for uploaded photos
+- Updated `AdminPage` copy to reflect the new storage-backed photo workflow
+- Kept public exhibition pages on their current static data source
 
 Verification:
 - `npm run build` passed
@@ -310,7 +340,7 @@ These rules must continue to be followed:
 5. Dev `base` is `/`
 6. Prod `base` is `/tk-photo/`
 7. Visual direction must follow `VISUAL_DESIGN.md`
-8. Do not build login, database, upload, Supabase, or admin features in this version
+8. Keep the public exhibition stable while V2 upload and admin work continues on `v2-upload`
 9. Photos must stay square-free, without rounded corners and without shadows
 10. Motion must stay restrained and limited to fade-in and slight scale
 11. Run `npm run build` after each completed round
@@ -333,11 +363,12 @@ Implemented:
 - GitHub Pages deployment workflow
 - Live GitHub Pages deployment
 
-Not implemented yet:
-- Login
-- Upload
-- Database
-- Supabase
+Not fully implemented yet:
+- Supabase-backed public exhibition page reads
+- Photo preview and thumbnail generation
+- Multi-photo upload
+- Drag-and-drop upload
+- Complex collaboration roles
 - Comments, likes, favorites
 - Download actions
 
@@ -346,11 +377,9 @@ Not implemented yet:
 ### Next Candidate Phase
 
 Goal:
-- Continue content refinement, image optimization, and curatorial polish without changing the static architecture
+- Switch public exhibition page reads from static album data to Supabase while preserving the V1 exhibition presentation
 
 Out of scope for this phase:
-- Login
-- Upload
-- Database
-- Supabase
+- Complex collaboration roles
+- Public page redesign
 - Comments, likes, favorites

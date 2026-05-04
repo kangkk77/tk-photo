@@ -6,13 +6,13 @@ Use a single bucket named `photos`.
 
 ## Recommended Visibility
 
-For V2 MVP, the bucket should be created as private.
+For the Phase 4B upload flow, the bucket should be created as public.
 
 Reason:
 
-1. public exhibition pages are not switching to Supabase yet
-2. upload and access rules will be easier to tighten later
-3. future preview delivery can use signed URLs or derived public assets
+1. the storage path needs a simple MVP rule for reading uploaded originals
+2. the public exhibition pages still remain on local static assets for now
+3. future preview delivery can still move toward generated derivatives later
 
 ## Path Format
 
@@ -48,4 +48,5 @@ Recommended future pattern:
 
 The current public site still uses local static images under `public/images`.
 
-This storage design is only preparation for V2 upload flows and should not replace the current static image pipeline yet.
+This storage design is only for the V2 admin upload flow and should not replace
+the current static image pipeline yet.

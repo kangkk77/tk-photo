@@ -22,7 +22,8 @@ function AdminPage() {
         </h1>
         <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
           A restrained private workspace for the next phase of the project,
-          keeping the public exhibition separate from the management surface.
+          keeping the public exhibition separate from the management surface
+          while album upload stays inside the studio.
         </p>
       </div>
 
@@ -45,8 +46,8 @@ function AdminPage() {
           <div className="space-y-5 text-sm leading-8 text-soft md:text-base">
             <p>
               The private studio route is now protected by Supabase Auth and
-              can begin creating personal album records before photo upload is
-              introduced.
+              can now manage personal albums, storage-backed photo uploads, and
+              EXIF-backed metadata without touching the public exhibition flow.
             </p>
             <button
               type="button"

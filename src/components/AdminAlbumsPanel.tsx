@@ -7,6 +7,7 @@ import {
   deleteAlbum,
   listMyAlbums,
 } from '../services/albumRepository'
+import AdminPhotoUploadPanel from './AdminPhotoUploadPanel'
 
 const themeOptions: { value: AlbumTheme; label: string }[] = [
   { value: 'seascape', label: 'Seascape' },
@@ -401,6 +402,11 @@ function AdminAlbumsPanel() {
                   <p>{album.date ?? 'No date set'}</p>
                   <p>{album.location ?? 'No location set'}</p>
                 </div>
+
+                <AdminPhotoUploadPanel
+                  albumId={album.id}
+                  albumTitle={album.title}
+                />
 
                 <button
                   type="button"
