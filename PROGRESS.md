@@ -252,6 +252,10 @@ Completed:
 - Added optional `note` support to the front-end `Photo` type
 - Added public photo note rendering on the photo detail page without changing the broader exhibition layout
 - Kept dev-only `console.info` source hints so it is visible whether the public gallery is using Supabase or static fallback
+- Adjusted the homepage to be auth-aware:
+  - signed-out visitors now see a fixed landing hero and curated static homepage sequences
+  - signed-in users now see only their own albums on the homepage
+  - signed-out homepage no longer exposes Supabase test albums or other public upload content
 
 Verification:
 - `npm run build` passed

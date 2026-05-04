@@ -29,6 +29,9 @@ function GalleryHero({
   const { t } = useI18n()
   const heroImage = backgroundImage ? getImagePath(backgroundImage) : ''
   const showHeroImage = Boolean(heroImage) && !imageMissing
+  const hasFeaturedDetails = Boolean(
+    featuredAlbumTitle || featuredAlbumSubtitle || featuredAlbumDate || featuredAlbumLocation,
+  )
 
   return (
     <section className="relative isolate min-h-[calc(100svh-7rem)] overflow-hidden border-b border-subtle/70 bg-canvas">
@@ -92,36 +95,38 @@ function GalleryHero({
           </p>
         </motion.div>
 
-        <motion.div
-          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
-          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-          transition={
-            shouldReduceMotion
-              ? { duration: 0.25, ease: 'linear' }
-              : { duration: 0.8, ease: 'easeOut', delay: 0.28 }
-          }
-          className="grid gap-6 border-t border-white/10 pt-6 text-white/84 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] md:items-end md:gap-12 md:pt-8"
-        >
-          <div className="space-y-2">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-white/58">
-              {t('galleryHero.featuredSequence')}
-            </p>
-            <h2 className="font-serif text-2xl leading-tight text-white md:text-[2.5rem]">
-              {featuredAlbumTitle}
-            </h2>
-            {featuredAlbumSubtitle ? (
-              <p className="text-sm tracking-[0.08em] text-white/72 md:text-base">
-                {featuredAlbumSubtitle}
+        {hasFeaturedDetails ? (
+          <motion.div
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            transition={
+              shouldReduceMotion
+                ? { duration: 0.25, ease: 'linear' }
+                : { duration: 0.8, ease: 'easeOut', delay: 0.28 }
+            }
+            className="grid gap-6 border-t border-white/10 pt-6 text-white/84 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] md:items-end md:gap-12 md:pt-8"
+          >
+            <div className="space-y-2">
+              <p className="text-[11px] uppercase tracking-[0.3em] text-white/58">
+                {t('galleryHero.featuredSequence')}
               </p>
-            ) : null}
-          </div>
+              <h2 className="font-serif text-2xl leading-tight text-white md:text-[2.5rem]">
+                {featuredAlbumTitle}
+              </h2>
+              {featuredAlbumSubtitle ? (
+                <p className="text-sm tracking-[0.08em] text-white/72 md:text-base">
+                  {featuredAlbumSubtitle}
+                </p>
+              ) : null}
+            </div>
 
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs uppercase tracking-[0.18em] text-white/60 md:justify-end">
-            {featuredAlbumDate ? <span>{featuredAlbumDate}</span> : null}
-            {featuredAlbumDate && featuredAlbumLocation ? <span>/</span> : null}
-            {featuredAlbumLocation ? <span>{featuredAlbumLocation}</span> : null}
-          </div>
-        </motion.div>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs uppercase tracking-[0.18em] text-white/60 md:justify-end">
+              {featuredAlbumDate ? <span>{featuredAlbumDate}</span> : null}
+              {featuredAlbumDate && featuredAlbumLocation ? <span>/</span> : null}
+              {featuredAlbumLocation ? <span>{featuredAlbumLocation}</span> : null}
+            </div>
+          </motion.div>
+        ) : null}
       </div>
     </section>
   )

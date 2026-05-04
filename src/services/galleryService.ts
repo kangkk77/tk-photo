@@ -1,7 +1,9 @@
 import { albums as staticAlbums } from '../data/albums'
+import { landingContent, type LandingContent } from '../data/landing'
 import { getSupabaseClient, hasSupabaseEnv } from '../lib/supabaseClient'
 import type { Album, Photo } from '../types'
 import type { PhotoRow } from '../types/database'
+import { getCurrentUser } from './authService'
 import {
   mapAlbumRowToAlbum,
   sortAlbumRows,
@@ -29,6 +31,48 @@ function logGallerySource(message: string) {
 
 function getStaticAlbumsSorted(): Album[] {
   return [...staticAlbums].sort((left, right) => right.date.localeCompare(left.date))
+}
+
+async function loadAlbumsByOwnerFromSupabase(userId: string): Promise<Album[]> {
+  const supabase = getSupabaseClient()
+  const { data: albumRows, error: albumError } = await supabase
+    .from('albums')
+    .select('*')
+    .eq('created_by', userId)
+    .order('created_at', { ascending: false })
+
+  if (albumError) {
+    throw albumError
+  }
+
+  if (!albumRows?.length) {
+    return []
+  }
+
+  const { data: photoRows, error: photoError } = await supabase
+    .from('photos')
+    .select('*')
+    .in(
+      'album_id',
+      albumRows.map((album) => album.id),
+    )
+    .order('created_at', { ascending: true })
+
+  if (photoError) {
+    throw photoError
+  }
+
+  const photosByAlbumId = new Map<string, PhotoRow[]>()
+
+  for (const photo of photoRows ?? []) {
+    const existingPhotos = photosByAlbumId.get(photo.album_id) ?? []
+    existingPhotos.push(photo)
+    photosByAlbumId.set(photo.album_id, existingPhotos)
+  }
+
+  return sortAlbumRows(albumRows).map((album) =>
+    mapAlbumRowToAlbum(supabase, album, photosByAlbumId.get(album.id) ?? []),
+  )
 }
 
 async function loadPublicAlbumsFromSupabase(): Promise<Album[]> {
@@ -105,6 +149,11 @@ async function loadPublicAlbumByIdFromSupabase(
   return mapAlbumRowToAlbum(supabase, albumRow, photoRows ?? [])
 }
 
+export async function getLandingContent(): Promise<LandingContent> {
+  logGallerySource('getLandingContent -> static landing content')
+  return landingContent
+}
+
 export async function getAlbums(): Promise<Album[]> {
   if (!hasSupabaseEnv) {
     logGallerySource('getAlbums -> static fallback (missing Supabase env)')
@@ -133,6 +182,29 @@ export async function getAlbums(): Promise<Album[]> {
 
 export async function getFeaturedAlbums(limit = 4): Promise<Album[]> {
   const allAlbums = await getAlbums()
+  return allAlbums.slice(0, limit)
+}
+
+export async function getMyHomepageAlbums(): Promise<Album[]> {
+  if (!hasSupabaseEnv) {
+    logGallerySource('getMyHomepageAlbums -> empty (missing Supabase env)')
+    return []
+  }
+
+  const user = await getCurrentUser()
+
+  if (!user) {
+    logGallerySource('getMyHomepageAlbums -> empty (no signed-in user)')
+    return []
+  }
+
+  const albums = await loadAlbumsByOwnerFromSupabase(user.id)
+  logGallerySource('getMyHomepageAlbums -> supabase')
+  return albums
+}
+
+export async function getMyFeaturedAlbums(limit = 4): Promise<Album[]> {
+  const allAlbums = await getMyHomepageAlbums()
   return allAlbums.slice(0, limit)
 }
 

@@ -52,6 +52,26 @@ export const dictionaries: Record<Locale, TranslationDictionary> = {
     'home.loadErrorLabel': '加载失败',
     'home.noAlbumsLabel': '暂无相册',
     'home.noAlbumsDescription': '当作品集准备好之后，首页会在这里呈现精选展览序列。',
+    'home.landing.heroSubtitle': '在檐角与天光之间，留一条安静进入照片的入口。',
+    'home.landing.heroDescription':
+      '未登录时，首页只保留一幅预设的开场画面和几组已经安放好的序列，让进入更像翻开一本慢慢展开的作品册。',
+    'home.landing.overline': '公开入口',
+    'home.landing.title': '从一张抬头的檐角开始，慢一点走进这些已经安放好的画面。',
+    'home.landing.description':
+      '这里保留的是固定的展览入口。光线、屋檐、街景和日常小事被编成几组温和的序列，适合作为第一次相遇。',
+    'home.auth.heroTitle': '我的作品集',
+    'home.auth.heroSubtitle': '当前账号下的相册与序列，会先从这里被看见。',
+    'home.auth.heroDescription':
+      '登录后，首页不再借用公开入口，而是回到你自己的作品集节奏。最新的相册会成为开场画面，其余序列继续在下方展开。',
+    'home.auth.overline': '我的相册',
+    'home.auth.title': '从最新一组开始，继续整理属于你的叙事。',
+    'home.auth.description':
+      '这里展示当前账号创建的相册。无论公开还是私密，它们都会先在这个首页入口按时间顺序排开。',
+    'home.auth.emptyLabel': '作品集为空',
+    'home.auth.emptyTitle': '还没有作品集',
+    'home.auth.emptyDescription':
+      '当前账号下还没有相册。先去后台创建第一组作品，再让首页成为你的私人入口。',
+    'home.auth.emptyAction': '前往后台创建',
     'albumCard.openAlbumAria': '打开相册 {{title}}',
     'albumCard.selectedAlbum': '精选相册',
     'albumCard.photosCount': '{{count}} 张照片',
@@ -318,6 +338,26 @@ export const dictionaries: Record<Locale, TranslationDictionary> = {
     'home.loadErrorLabel': 'Load Error',
     'home.noAlbumsLabel': 'No Albums Yet',
     'home.noAlbumsDescription': 'Featured exhibition sequences will appear here once the collection is available.',
+    'home.landing.heroSubtitle': 'Between eaves and open sky, an unhurried way into the photographs.',
+    'home.landing.heroDescription':
+      'While signed out, the homepage keeps a fixed opening frame and a few settled sequences, so the first encounter feels more like opening a book than entering a dashboard.',
+    'home.landing.overline': 'Public Entrance',
+    'home.landing.title': 'Begin with one upward glance, then move gently into the prepared sequences.',
+    'home.landing.description':
+      'This entrance remains intentionally fixed. Light, roofs, streets, and small gestures are arranged here as a calm first meeting with the exhibition.',
+    'home.auth.heroTitle': 'My Collection',
+    'home.auth.heroSubtitle': 'Albums under the current account begin here, before they unfold elsewhere.',
+    'home.auth.heroDescription':
+      'Once signed in, the homepage turns away from the public entrance and returns to your own rhythm. The newest album becomes the opening frame, with the rest continuing below.',
+    'home.auth.overline': 'My Albums',
+    'home.auth.title': 'Resume the story from the latest sequence onward.',
+    'home.auth.description':
+      'Albums created by the current account are gathered here first, whether public or private, so the homepage becomes a quieter private threshold.',
+    'home.auth.emptyLabel': 'Collection Empty',
+    'home.auth.emptyTitle': 'No albums yet',
+    'home.auth.emptyDescription':
+      'There is no album under the current account yet. Create the first sequence in the studio, then let the homepage become your private entrance.',
+    'home.auth.emptyAction': 'Go To Studio',
     'albumCard.openAlbumAria': 'Open album {{title}}',
     'albumCard.selectedAlbum': 'Selected Album',
     'albumCard.photosCount': '{{count}} Photos',
