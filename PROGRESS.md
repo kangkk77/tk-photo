@@ -18,7 +18,7 @@ Branch:
 - `v2-upload`
 
 Current focus:
-- V2 Phase 3: authentication and protected studio routes
+- V2 Phase 4A: admin album management
 
 ### V2 Phase 1: Data Access Layer Abstraction
 
@@ -98,6 +98,30 @@ Completed:
   - `Admin` entry and `Sign Out` action when signed in
 - Kept public exhibition pages on their existing static data flow
 - Kept `HashRouter` unchanged
+
+Verification:
+- `npm run build` passed
+
+### V2 Phase 4A: Admin Album Management
+
+Completed:
+- Added `src/services/albumRepository.ts`
+- Implemented Supabase album repository functions:
+  - `listMyAlbums()`
+  - `createAlbum(input)`
+  - `updateAlbum(id, input)`
+  - `deleteAlbum(id)`
+- Ensured album mutations use the current authenticated user id as `created_by`
+- Added `src/components/AdminAlbumsPanel.tsx`
+- Updated `AdminPage` to show:
+  - current signed-in user email
+  - album creation form
+  - current user's album list
+  - delete action for owned albums
+- Added `loading`, `error`, and `empty` states for admin album management
+- Kept `cover_image` optional for now
+- Did not add photo upload yet
+- Did not change public exhibition page data sources
 
 Verification:
 - `npm run build` passed

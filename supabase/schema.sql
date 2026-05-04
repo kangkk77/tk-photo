@@ -83,6 +83,22 @@ alter table public.profiles enable row level security;
 alter table public.albums enable row level security;
 alter table public.photos enable row level security;
 
+grant usage on schema public to anon, authenticated;
+
+grant select on public.profiles to authenticated;
+grant insert on public.profiles to authenticated;
+grant update on public.profiles to authenticated;
+
+grant select on public.albums to anon, authenticated;
+grant insert on public.albums to authenticated;
+grant update on public.albums to authenticated;
+grant delete on public.albums to authenticated;
+
+grant select on public.photos to anon, authenticated;
+grant insert on public.photos to authenticated;
+grant update on public.photos to authenticated;
+grant delete on public.photos to authenticated;
+
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
 on public.profiles

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import AdminAlbumsPanel from '../components/AdminAlbumsPanel'
 import { useAuth } from '../hooks/useAuth'
 
 function AdminPage() {
@@ -35,20 +36,6 @@ function AdminPage() {
               {user?.email ?? 'Signed-in user'}
             </p>
           </div>
-
-          <div className="space-y-4 border-t border-subtle pt-6">
-            <p className="text-xs uppercase tracking-[0.28em] text-muted">
-              Next Surface
-            </p>
-            <p className="text-sm leading-8 text-soft md:text-base">
-              Albums Management Coming Soon
-            </p>
-            <p className="max-w-2xl text-sm leading-8 text-soft md:text-base">
-              This dashboard is intentionally light in Phase 3 so the
-              authentication flow can be verified before album and upload tools
-              are added.
-            </p>
-          </div>
         </div>
 
         <aside className="space-y-5 border-t border-subtle/80 pt-5 md:border-l md:border-t-0 md:pl-8 md:pt-1">
@@ -58,7 +45,8 @@ function AdminPage() {
           <div className="space-y-5 text-sm leading-8 text-soft md:text-base">
             <p>
               The private studio route is now protected by Supabase Auth and
-              will expand into album management in the next phase.
+              can begin creating personal album records before photo upload is
+              introduced.
             </p>
             <button
               type="button"
@@ -70,6 +58,8 @@ function AdminPage() {
           </div>
         </aside>
       </div>
+
+      <AdminAlbumsPanel />
     </section>
   )
 }
